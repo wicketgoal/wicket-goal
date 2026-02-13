@@ -3,161 +3,117 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wicket Goal TV</title>
+<title>Live Player | Wicket Goal</title>
 
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
-body{background:#0f172a;color:#fff}
-
-/* HEADER */
-.header{
-  background:#111827;
-  padding:15px;
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#0f0f1a;
+  color:white;
   text-align:center;
-  font-size:20px;
-  font-weight:bold;
-  position:sticky;
-  top:0;
-  z-index:999;
-  border-bottom:2px solid #ff0000;
 }
 
-/* MAIN CONTAINER */
-.container{
-  max-width:1000px;
-  margin:auto;
+header{
   padding:15px;
+  font-size:22px;
+  font-weight:bold;
+  background:#111;
+  box-shadow:0 0 15px rgba(255,0,80,0.4);
 }
 
-/* PLAYER */
-.player-box{
+.player-container{
+  width:95%;
+  max-width:900px;
+  margin:20px auto;
   background:#000;
-  border-radius:10px;
+  border-radius:12px;
   overflow:hidden;
-  box-shadow:0 0 20px rgba(0,0,0,0.5);
+  box-shadow:0 0 25px rgba(255,0,80,0.6);
 }
 
-.player-box iframe{
+iframe{
   width:100%;
   height:500px;
   border:none;
+  background:black;
 }
 
-/* STREAM BUTTONS */
-.stream-buttons{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
+@media(max-width:768px){
+  iframe{
+    height:250px;
+  }
+}
+
+.link-buttons{
   margin-top:15px;
 }
 
-.stream-btn{
-  flex:1;
-  min-width:140px;
-  text-align:center;
-  padding:12px;
-  background:#ff0000;
-  color:#fff;
-  border-radius:6px;
-  text-decoration:none;
-  font-weight:bold;
-  transition:0.3s;
-}
-
-.stream-btn:hover{
-  background:#cc0000;
-}
-
-/* TELEGRAM */
-.telegram-cta{
-  display:block;
-  margin:20px 0;
-  text-align:center;
-  padding:15px;
-  background:#0088cc;
-  color:#fff;
-  font-weight:bold;
+.link-buttons button{
+  margin:5px;
+  padding:8px 12px;
+  border:none;
   border-radius:8px;
-  text-decoration:none;
-}
-
-/* ADS */
-.ad-box{
-  background:#1f2937;
-  text-align:center;
-  padding:20px;
-  margin:20px 0;
-  border-radius:8px;
-  font-size:14px;
-  color:#aaa;
-}
-
-/* FOOTER */
-.footer{
-  text-align:center;
-  padding:15px;
-  font-size:13px;
-  color:#aaa;
-  margin-top:30px;
-}
-
-/* MOBILE */
-@media(max-width:768px){
-  .player-box iframe{
-    height:230px;
-  }
-  .stream-buttons{
-    flex-direction:column;
-  }
+  cursor:pointer;
+  font-weight:bold;
+  background:linear-gradient(45deg,#ff0050,#ff7a00);
+  color:white;
 }
 </style>
 </head>
+
 <body>
 
-<div class="header">
-🔥 Live Cricket Streaming
+<header>
+🎥 Wicket Goal Live Player
+</header>
+
+<div class="player-container">
+  <iframe id="videoFrame" allowfullscreen></iframe>
 </div>
 
-<div class="container">
-
-<div class="player-box">
-  <iframe id="videoPlayer" 
-  src="https://cric-hd.pages.dev/player" 
-  allowfullscreen></iframe>
-</div>
-
-<div class="stream-buttons">
-  <a class="stream-btn" onclick="changeStream('https://cric-hd.pages.dev/player3')">Smooth</a>
-  <a class="stream-btn" onclick="changeStream('https://wicket-goal.pages.dev/mpd/?id=prime')">English HD</a>
-  <a class="stream-btn" onclick="changeStream('https://wicket-goal.pages.dev/mpd/?id=willow')">Willow HD</a>
-  
-</div>
-
-<div class="ad-box">
-Advertisement Space (Top Banner Ad)
-</div>
-
-<a class="telegram-cta" href="https://t.me/wicketgoal" target="_blank">
-📢 Join Telegram for Live Links & Updates
-</a>
-
-<div class="ad-box">
-Advertisement Space (Bottom Banner Ad)
-</div>
-
-<div class="footer">
-© 2026 Live Cricket Stream | Powered by Cloudflare Pages
-</div>
-
-</div>
+<div class="link-buttons" id="buttons"></div>
 
 <script>
-function changeStream(url){
-  document.getElementById("videoPlayer").src = url;
+
+/* 🔥 STREAM DATABASE */
+const streams = {
+  1: [
+    "https://allrounder-king.pages.dev/hub-4",
+    "https://example.com/embed2"
+  ],
+  2: [
+    "https://example2.com/embed1",
+    "https://example2.com/embed2"
+  ],
+  3: [
+    "https://example3.com/embed1"
+  ]
+};
+
+/* Get ID from URL */
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+/* Load stream */
+if(streams[id]){
+  const frame = document.getElementById("videoFrame");
+  frame.src = streams[id][0]; // first link default
+
+  const buttonContainer = document.getElementById("buttons");
+
+  streams[id].forEach((link, index)=>{
+    const btn = document.createElement("button");
+    btn.innerText = "Server " + (index+1);
+    btn.onclick = ()=> frame.src = link;
+    buttonContainer.appendChild(btn);
+  });
+
+}else{
+  document.body.innerHTML = "<h2>Stream Not Found</h2>";
 }
+
 </script>
 
 </body>
 </html>
-
-
