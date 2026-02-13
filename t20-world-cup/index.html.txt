@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>T20 World Cup Live Streaming | Wicket Goal</title>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+body{background:#0f172a;color:#fff}
+
+/* HEADER */
+.header{
+  background:#111827;
+  padding:18px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  border-bottom:3px solid #ff0000;
+}
+
+/* CONTAINER */
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:15px;
+}
+
+/* PAGE TITLE */
+.page-title{
+  text-align:center;
+  font-size:26px;
+  margin:20px 0;
+  font-weight:bold;
+}
+
+/* MATCH GRID */
+.match-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:15px;
+}
+
+/* MATCH CARD */
+.match-card{
+  background:#1e293b;
+  border-radius:12px;
+  padding:18px;
+  text-align:center;
+  box-shadow:0 0 15px rgba(0,0,0,0.4);
+  transition:0.3s;
+}
+
+.match-card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 0 20px rgba(255,0,0,0.6);
+}
+
+/* TEAMS */
+.teams{
+  font-size:18px;
+  font-weight:bold;
+  margin-bottom:8px;
+}
+
+.match-info{
+  font-size:14px;
+  color:#cbd5e1;
+  margin-bottom:15px;
+}
+
+/* BUTTON */
+.watch-btn{
+  display:inline-block;
+  padding:10px 16px;
+  background:#ff0000;
+  color:#fff;
+  text-decoration:none;
+  border-radius:6px;
+  font-weight:bold;
+  transition:0.3s;
+}
+
+.watch-btn:hover{
+  background:#cc0000;
+}
+
+/* ADS */
+.ad-box{
+  background:#1f2937;
+  text-align:center;
+  padding:20px;
+  margin:25px 0;
+  border-radius:8px;
+  font-size:14px;
+  color:#aaa;
+}
+
+/* TELEGRAM */
+.telegram-cta{
+  display:block;
+  margin:30px auto;
+  max-width:400px;
+  text-align:center;
+  padding:14px;
+  background:#0088cc;
+  color:#fff;
+  font-weight:bold;
+  border-radius:8px;
+  text-decoration:none;
+}
+
+/* FOOTER */
+.footer{
+  text-align:center;
+  padding:20px;
+  font-size:13px;
+  color:#aaa;
+  margin-top:30px;
+  border-top:1px solid #1e293b;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .page-title{font-size:22px}
+  .teams{font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+🏏 Wicket Goal – T20 World Cup
+</div>
+
+<div class="container">
+
+<div class="page-title">
+ICC T20 World Cup 2026 Live Matches
+</div>
+
+<div class="ad-box">
+Top Banner Advertisement
+</div>
+
+<div class="match-grid">
+
+<!-- MATCH 1 -->
+<div class="match-card">
+  <div class="teams">India vs Namibia</div>
+  <div class="match-info">12 Feb 2026 | 07:15 PM NST</div>
+  <a href="https://wicket-goal.pages.dev/match/ind-vs-nam/" class="watch-btn">
+    Watch Live
+  </a>
+</div>
+
+<!-- MATCH 2 -->
+<div class="match-card">
+  <div class="teams">Australia vs England</div>
+  <div class="match-info">13 Feb 2026 | 03:15 PM NST</div>
+  <a href="#" class="watch-btn">
+    Watch Live
+  </a>
+</div>
+
+<!-- MATCH 3 -->
+<div class="match-card">
+  <div class="teams">Pakistan vs South Africa</div>
+  <div class="match-info">14 Feb 2026 | 07:15 PM NST</div>
+  <a href="#" class="watch-btn">
+    Watch Live
+  </a>
+</div>
+
+<!-- MATCH 4 -->
+<div class="match-card">
+  <div class="teams">Nepal vs Sri Lanka</div>
+  <div class="match-info">15 Feb 2026 | 03:15 PM NST</div>
+  <a href="#" class="watch-btn">
+    Watch Live
+  </a>
+</div>
+
+</div>
+
+<div class="ad-box">
+Bottom Banner Advertisement
+</div>
+
+<a class="telegram-cta" href="https://t.me/wicketgoal" target="_blank">
+📢 Join Telegram for Instant Live Links
+</a>
+
+<div class="footer">
+© 2026 Wicket Goal | All Rights Reserved
+</div>
+
+</div>
+
+</body>
+</html>
