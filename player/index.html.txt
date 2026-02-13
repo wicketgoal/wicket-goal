@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRIC HD - Player</title>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0"></script>
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #000;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+#loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border: 6px solid rgba(255,255,255,0.2);
+  border-top: 6px solid #ff0000;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+video, iframe {
+  width: 100%;
+  height: 100%;
+  display: none;
+  border: none;
+  background: #000;
+}
+</style>
+</head>
+<body>
+
+<div id="loader"></div>
+<video id="videoPlayer" controls autoplay playsinline></video>
+<iframe id="iframeViewer"></iframe>
+
+<script>
+const streams = {
+  willow: "https://crichd.workspace-sultanarabi161.workers.dev/live/willowusa.m3u8",
+  asport: "https://crichd.workspace-sultanarabi161.workers.dev/live/asportshd.m3u8",
+  ss: "https://playztv-apps.pages.dev/star-sports/index.m3u8",
+  nep: "https://embedsports.me/t20/nepal-vs-united-arab-emirates-stream-1"
+};
+
+const params = new URLSearchParams(window.location.search);
+const src = params.get("src");
+const id = params.get("id");
+const url = src || (id ? streams[id] : null);
+
+const video = document.getElementById("videoPlayer");
+const iframe = document.getElementById("iframeViewer");
+const loader = document.getElementById("loader");
+
+const hideLoader = () => loader.style.display = "none";
+
+if (!url) {
+  document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:40vh'>❌ Stream not available</h2>";
+} else {
+  const isHLS = url.toLowerCase().includes(".m3u8");
+  const videoExt = ["mp4","webm","ogg","mov","mkv"];
+  const isVideo = videoExt.some(ext => url.toLowerCase().includes(ext));
+
+  if (isHLS || isVideo) {
+    video.style.display = "block";
+    if (isHLS && Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play(); hideLoader(); });
+    } else {
+      video.src = url;
+      video.addEventListener("loadeddata", hideLoader);
+    }
+  } else {
+    iframe.style.display = "block";
+    iframe.src = url;
+    iframe.onload = hideLoader;
+    setTimeout(hideLoader, 6000);
+  }
+}
+</script>
+</body>
+</html>
