@@ -127,7 +127,11 @@ fetch(API).then(r=>r.json()).then(j=>{
 
       ${
         m.live
-        ? `<div onclick="watchMatch()" class="live-glow mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-pink-600 to-orange-500 cursor-pointer">▶ Watch Live Now</div>`
+? `<a href="/match/${m.teama_short.toLowerCase()}-vs-${m.teamb_short.toLowerCase()}/" 
+     class="live-glow block mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-pink-600 to-orange-500 cursor-pointer">
+     ▶ Watch Live Now
+   </a>`
+
         : `<div class="mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">⏳ Upcoming Match</div>`
       }
     </article>`;
@@ -141,3 +145,4 @@ function watchMatch(){
 
 </body>
 </html>
+
