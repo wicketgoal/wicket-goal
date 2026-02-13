@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wicket Goal TV</title>
 
-<!-- Shaka Player -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css" crossorigin="anonymous">
-
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
 body{background:#0f172a;color:#fff}
@@ -32,47 +28,16 @@ body{background:#0f172a;color:#fff}
 }
 
 .player-box{
-  position:relative;
   background:#000;
   border-radius:10px;
   overflow:hidden;
   box-shadow:0 0 20px rgba(0,0,0,0.5);
+}
+
+.player-box iframe{
   width:100%;
   height:500px;
-}
-
-.shaka-video-container{
-  width:100%;
-  height:100%;
-  position:absolute;
-  inset:0;
-}
-
-video{
-  width:100%;
-  height:100%;
-  object-fit:contain;
-  background:#000;
-}
-
-.live-banner{
-  position:absolute;
-  top:20px;
-  right:80px;
-  z-index:10;
-  background:red;
-  color:white;
-  padding:8px 16px;
-  font-weight:bold;
-  font-size:16px;
-  border-radius:4px;
-  text-transform:uppercase;
-  animation:pulse 1s infinite;
-}
-
-@keyframes pulse{
-  0%,100%{transform:scale(1);opacity:1;}
-  50%{transform:scale(1.1);opacity:0.8;}
+  border:none;
 }
 
 .stream-buttons{
@@ -130,26 +95,17 @@ video{
   margin-top:30px;
 }
 
-#overlay-text{
-  position:absolute;
-  bottom:5%;
-  left:50%;
-  transform:translateX(-50%);
-  color:rgba(255,255,255,0.7);
-  font-size:1.2vw;
-  font-weight:600;
-  text-shadow:1px 1px 4px rgba(0,0,0,0.8);
-  z-index:10;
-  pointer-events:none;
-}
-
 @media(max-width:768px){
-  .player-box{height:230px;}
-  .stream-buttons{flex-direction:column;}
+  .player-box iframe{
+    height:230px;
+  }
+  .stream-buttons{
+    flex-direction:column;
+  }
 }
 </style>
 
-<!-- YOUR TOP ADS (UNCHANGED) -->
+<!-- YOUR TOP ADS -->
 <script src="https://brilliantconcealed.com/84/7e/72/847e72f260203d9209f3a3358af309b0.js"></script>
 
 </head>
@@ -165,19 +121,19 @@ video{
 <div class="container">
 
 <div class="player-box">
-  <div class="shaka-video-container" data-shaka-player>
-    <video autoplay playsinline></video>
-  </div>
-  <div class="live-banner">LIVE</div>
-  <div id="overlay-text">WicketGoal.com</div>
+  <iframe id="videoPlayer"
+    src="https://new-player-lyart.vercel.app/?id=prime"
+    allow="autoplay; fullscreen"
+    allowfullscreen>
+  </iframe>
 </div>
 
 <div class="stream-buttons">
-  <div class="stream-btn" onclick="changeStream('smooth')">Smooth</div>
-  <div class="stream-btn" onclick="changeStream('prime')">Prime HD</div>
-  <div class="stream-btn" onclick="changeStream('willow')">Willow HD</div>
-  <div class="stream-btn" onclick="changeStream('hls1')">Hindi</div>
-  <div class="stream-btn" onclick="changeStream('direct')">Link 5</div>
+  <div class="stream-btn" onclick="changeStream('https://new-player-lyart.vercel.app/?id=prime')">Prime HD</div>
+  <div class="stream-btn" onclick="changeStream('https://new-player-lyart.vercel.app/?id=willow')">Willow HD</div>
+  <div class="stream-btn" onclick="changeStream('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8')">Test HLS</div>
+  <div class="stream-btn" onclick="changeStream('https://www.w3schools.com/html/mov_bbb.mp4')">Test MP4</div>
+  <div class="stream-btn" onclick="changeStream('https://example.com')">Other Embed</div>
 </div>
 
 <div class="ad-box">
@@ -217,87 +173,9 @@ video{
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', async () => {
-
-  shaka.polyfill.installAll();
-  if (!shaka.Player.isBrowserSupported()) {
-    alert("Browser not supported");
-    return;
-  }
-
-  const video = document.querySelector("video");
-  const player = new shaka.Player(video);
-  const container = document.querySelector(".shaka-video-container");
-  new shaka.ui.Overlay(player, container, video);
-
-  const streams = {
-
-    prime: {
-      url: "https://a109aivottepl-a.akamaihd.net/syd-nitro/live/clients/dash/enc/bynuls0umq/out/v1/8f460e2902ee422e9ee8229e6de25719/cenc.mpd",
-      drm: {
-        clearKeys: {
-          "ed76c18710d621a87c89dedc7c13019f":
-          "7241c82fe48525a9dc6be6d7bb86611f"
-        }
-      }
-    },
-
-    smooth: {
-      url: "https://a204aivottepl-a.akamaihd.net/sin-nitro/live/clients/dash/enc/fdb3pubmek/out/v1/aefca6420f944a9482e117f315de535f/cenc.mpd",
-      drm: {
-        clearKeys: {
-          "7e9239c1982d984a002df3ed049d0756":
-          "1b8a17598129a3618535c8fb05f103fe"
-        }
-      }
-    },
-
-    willow: {
-      url: "https://otte.live.cf.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/cjjxjjcb4c/out/v1/355898f6719a47ec8cd378316eac9f1c/cenc.mpd'",
-      drm: {
-        clearKeys: {
-          "9d6749a345129547c1992d538f965f29":
-          "1e4800831a59a6ef6c1f0a641c89a498"
-        }
-      }
-    },
-
-    hls1: {
-      url: "https://global-media.sooplive.com/live/yonotv2025/master.m3u8"
-    },
-
-    direct: {
-      url: ""
-    }
-
-  };
-
-  async function loadStream(id){
-    const stream = streams[id];
-    if(!stream){ alert("Invalid Stream"); return; }
-
-    try{
-      await player.unload();
-      if(stream.drm){
-        player.configure({ drm: stream.drm });
-      } else {
-        player.configure({ drm: {} });
-      }
-      await player.load(stream.url);
-      console.log("Loaded:", id);
-    }catch(e){
-      console.error(e);
-      alert("Stream failed.");
-    }
-  }
-
-  window.changeStream = loadStream;
-
-  const urlParams = new URLSearchParams(window.location.search);
-  const defaultStream = urlParams.get("id") || "prime";
-  loadStream(defaultStream);
-
-});
+function changeStream(url){
+  document.getElementById("videoPlayer").src = url;
+}
 </script>
 
 <!-- YOUR SUPERCOUNTERS SCRIPT -->
