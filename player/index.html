@@ -6,112 +6,76 @@
 <title>Live Player | Wicket Goal</title>
 
 <style>
-body{
+*{
   margin:0;
-  font-family:Arial, sans-serif;
-  background:#0f0f1a;
-  color:white;
-  text-align:center;
+  padding:0;
+  box-sizing:border-box;
 }
 
-header{
-  padding:15px;
-  font-size:22px;
-  font-weight:bold;
-  background:#111;
-  box-shadow:0 0 15px rgba(255,0,80,0.4);
-}
-
-.player-container{
-  width:95%;
-  max-width:900px;
-  margin:20px auto;
-  background:#000;
-  border-radius:12px;
+body{
+  background:black;
+  height:100vh;
   overflow:hidden;
-  box-shadow:0 0 25px rgba(255,0,80,0.6);
+  font-family:Arial, sans-serif;
 }
 
-iframe{
+.player-wrapper{
   width:100%;
-  height:500px;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:black;
+}
+
+iframe, video{
+  width:100%;
+  height:100%;
   border:none;
   background:black;
 }
 
-@media(max-width:768px){
-  iframe{
-    height:250px;
-  }
-}
-
-.link-buttons{
-  margin-top:15px;
-}
-
-.link-buttons button{
-  margin:5px;
-  padding:8px 12px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:bold;
-  background:linear-gradient(45deg,#ff0050,#ff7a00);
+.error{
   color:white;
+  text-align:center;
+  font-size:22px;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-🎥 Wicket Goal Live Player
-</header>
-
-<div class="player-container">
-  <iframe id="videoFrame" allowfullscreen></iframe>
+<div class="player-wrapper">
+  <iframe id="videoFrame" allowfullscreen allow="autoplay; encrypted-media"></iframe>
 </div>
-
-<div class="link-buttons" id="buttons"></div>
 
 <script>
 
-/* 🔥 STREAM DATABASE */
+/* 🔥 STREAM DATABASE (ONE LINK PER ID) */
 const streams = {
-  1: [
-    "https://allrounder-king.pages.dev/hub-4",
-    "https://example.com/embed2"
-  ],
-  2: [
-    "https://example2.com/embed1",
-    "https://example2.com/embed2"
-  ],
-  3: [
-    "https://example3.com/embed1"
-  ]
+  1: "https://allrounder-king.pages.dev/hub-4",
+  2: "https://example.com/embed-link-2",
+  3: "https://example.com/embed-link-3"
 };
 
 /* Get ID from URL */
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
-/* Load stream */
+/* Load video */
 if(streams[id]){
-  const frame = document.getElementById("videoFrame");
-  frame.src = streams[id][0]; // first link default
-
-  const buttonContainer = document.getElementById("buttons");
-
-  streams[id].forEach((link, index)=>{
-    const btn = document.createElement("button");
-    btn.innerText = "Server " + (index+1);
-    btn.onclick = ()=> frame.src = link;
-    buttonContainer.appendChild(btn);
-  });
-
+  document.getElementById("videoFrame").src = streams[id];
 }else{
-  document.body.innerHTML = "<h2>Stream Not Found</h2>";
+  document.body.innerHTML = "<div class='error'>Stream Not Found</div>";
 }
+
+/* Optional: Auto fullscreen on click */
+document.addEventListener("click", function(){
+  const iframe = document.getElementById("videoFrame");
+  if(iframe.requestFullscreen){
+    iframe.requestFullscreen();
+  }
+}, { once: true });
 
 </script>
 
