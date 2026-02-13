@@ -5,10 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wicket Goal TV</title>
 
+<!-- Shaka Player -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css" crossorigin="anonymous">
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
 body{background:#0f172a;color:#fff}
 
+/* HEADER */
 .header{
   background:#111827;
   padding:15px;
@@ -21,25 +26,68 @@ body{background:#0f172a;color:#fff}
   border-bottom:2px solid #ff0000;
 }
 
+/* MAIN CONTAINER */
 .container{
   max-width:1000px;
   margin:auto;
   padding:15px;
 }
 
+/* PLAYER */
 .player-box{
+  position:relative;
   background:#000;
   border-radius:10px;
   overflow:hidden;
   box-shadow:0 0 20px rgba(0,0,0,0.5);
-}
-
-.player-box iframe{
   width:100%;
   height:500px;
-  border:none;
 }
 
+.shaka-video-container{
+  width:100%;
+  height:100%;
+  position:absolute;
+  inset:0;
+}
+
+.shaka-spinner-container,
+.shaka-spinner,
+.shaka-spinner-svg {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+video {
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  background:#000;
+}
+
+/* LIVE Banner */
+.live-banner {
+  position:absolute;
+  top:20px;
+  right:80px;
+  z-index:10;
+  background:red;
+  color:white;
+  padding:8px 16px;
+  font-weight:bold;
+  font-size:16px;
+  border-radius:4px;
+  text-transform:uppercase;
+  animation:pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%,100% { transform: scale(1); opacity:1; }
+  50% { transform: scale(1.1); opacity:0.8; }
+}
+
+/* STREAM BUTTONS */
 .stream-buttons{
   display:flex;
   flex-wrap:wrap;
@@ -65,6 +113,7 @@ body{background:#0f172a;color:#fff}
   background:#cc0000;
 }
 
+/* TELEGRAM */
 .telegram-cta{
   display:block;
   margin:20px 0;
@@ -77,16 +126,7 @@ body{background:#0f172a;color:#fff}
   text-decoration:none;
 }
 
-.ad-box{
-  background:#1f2937;
-  text-align:center;
-  padding:20px;
-  margin:20px 0;
-  border-radius:8px;
-  font-size:14px;
-  color:#aaa;
-}
-
+/* FOOTER */
 .footer{
   text-align:center;
   padding:15px;
@@ -95,19 +135,29 @@ body{background:#0f172a;color:#fff}
   margin-top:30px;
 }
 
+/* Bottom-center overlay text */
+#overlay-text {
+  position:absolute;
+  bottom:5%;
+  left:50%;
+  transform:translateX(-50%);
+  color:rgba(255,255,255,0.7);
+  font-size:1.2vw;
+  min-font-size:12px;
+  max-font-size:20px;
+  font-weight:600;
+  text-shadow:1px 1px 4px rgba(0,0,0,0.8);
+  z-index:10;
+  pointer-events:none;
+  font-family:'Roboto', sans-serif;
+}
+
+/* MOBILE */
 @media(max-width:768px){
-  .player-box iframe{
-    height:230px;
-  }
-  .stream-buttons{
-    flex-direction:column;
-  }
+  .player-box{height:230px;}
+  .stream-buttons{flex-direction:column;}
 }
 </style>
-
-<!-- YOUR TOP ADS -->
-<script src="https://brilliantconcealed.com/84/7e/72/847e72f260203d9209f3a3358af309b0.js"></script>
-
 </head>
 <body>
 
@@ -115,75 +165,85 @@ body{background:#0f172a;color:#fff}
 🔥 Live Cricket Streaming
 </div>
 
-<script async="async" data-cfasync="false" src="https://brilliantconcealed.com/a5aea346f5ad084f5a2a9721d4d585fc/invoke.js"></script>
-<div id="container-a5aea346f5ad084f5a2a9721d4d585fc"></div>
-
 <div class="container">
 
-<div class="player-box">
-  <iframe id="videoPlayer"
-    src="https://cric-hd.pages.dev/mpd/?id=prime"
-    allow="autoplay; fullscreen"
-    allowfullscreen>
-  </iframe>
+  <!-- Player -->
+  <div class="player-box">
+    <div class="shaka-video-container" data-shaka-player>
+      <video autoplay playsinline></video>
+    </div>
+    <div class="live-banner">LIVE</div>
+    <div id="overlay-text">WicketGoal.com</div>
+  </div>
+
+  <!-- Stream Buttons -->
+  <div class="stream-buttons">
+    <div class="stream-btn" onclick="changeStream('hindi')">Smooth</div>
+    <div class="stream-btn" onclick="changeStream('prime')">Prime HD</div>
+    <div class="stream-btn" onclick="changeStream('willow')">Willow HD</div>
+    <div class="stream-btn" onclick="changeStream('hub')">HTSTAR HD</div>
+  </div>
+
+  <!-- Telegram CTA -->
+  <a class="telegram-cta" href="https://t.me/wicketgoal" target="_blank">
+  📢 Join Telegram for Live Links & Updates
+  </a>
+
+  <!-- Footer -->
+  <div class="footer">
+  © 2026 Live Cricket Stream | Powered by Cloudflare Pages
+  </div>
+
 </div>
 
-<div class="stream-buttons">
-  <div class="stream-btn" onclick="changeStream('https://cric-hd.pages.dev/mpd/?id=prime')">Prime HD</div>
-  <div class="stream-btn" onclick="changeStream('https://new-player-lyart.vercel.app/?id=willow')">Willow HD</div>
-  <div class="stream-btn" onclick="changeStream('https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8')">Test HLS</div>
-  <div class="stream-btn" onclick="changeStream('https://www.w3schools.com/html/mov_bbb.mp4')">Test MP4</div>
-  <div class="stream-btn" onclick="changeStream('https://example.com')">Other Embed</div>
-</div>
-
-<div class="ad-box">
 <script>
-  atOptions = {
-    'key' : 'b0527e3b769f1aa6fea37eac558356e9',
-    'format' : 'iframe',
-    'height' : 60,
-    'width' : 468,
-    'params' : {}
+document.addEventListener('DOMContentLoaded', async () => {
+  shaka.polyfill.installAll();
+  if (!shaka.Player.isBrowserSupported()) {
+    alert('Your browser does not support Shaka Player.');
+    return;
+  }
+
+  const video = document.querySelector('video');
+  const player = new shaka.Player(video);
+  const container = document.querySelector('.shaka-video-container');
+  const ui = new shaka.ui.Overlay(player, container, video);
+  ui.configure({
+    controlPanelElements: [
+      'play_pause','time_and_duration','mute','volume','spacer','quality','fullscreen'
+    ]
+  });
+
+  const streams = {
+    "hindi": { url: "https://a204aivottepl-a.akamaihd.net/sin-nitro/live/clients/dash/enc/fdb3pubmek/out/v1/aefca6420f944a9482e117f315de535f/cenc.mpd", keyId: "7e9239c1982d984a002df3ed049d0756", key: "1b8a17598129a3618535c8fb05f103fe" },
+    "prime": { url: "https://a109aivottepl-a.akamaihd.net/syd-nitro/live/clients/dash/enc/bynuls0umq/out/v1/8f460e2902ee422e9ee8229e6de25719/cenc.mpd", keyId: "ed76c18710d621a87c89dedc7c13019f", key: "7241c82fe48525a9dc6be6d7bb86611f" },
+    "willow": { url: "https://otte.live.cf.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/cjjxjjcb4c/out/v1/355898f6719a47ec8cd378316eac9f1c/cenc.mpd", keyId: "9d6749a345129547c1992d538f965f29", key: "1e4800831a59a6ef6c1f0a641c89a498" },
+    "hub": { url: "https://global-media.sooplive.com/live/yonotv2025/master.m3u8" } // example
   };
+
+  // Get ?id= from URL, default to prime
+  const urlParams = new URLSearchParams(window.location.search);
+  let id = urlParams.get('id') || 'prime';
+
+  async function loadStream(id){
+    const stream = streams[id];
+    if(!stream) { alert("Invalid Stream"); return; }
+
+    player.configure({
+      drm: { clearKeys: { [stream.keyId]: stream.key } },
+      streaming: { lowLatencyMode:true }
+    });
+
+    try { await player.load(stream.url); console.log("✅ Loaded stream:", id); }
+    catch(err){ console.error("❌ Failed to load:", err); alert("Failed to load selected stream."); }
+  }
+
+  window.changeStream = loadStream;
+
+  // Load initial stream
+  loadStream(id);
+});
 </script>
-<script src="https://brilliantconcealed.com/b0527e3b769f1aa6fea37eac558356e9/invoke.js"></script>
-</div>
-
-<a class="telegram-cta" href="https://t.me/wicketgoal" target="_blank">
-📢 Join Telegram for Live Links & Updates
-</a>
-
-<div class="ad-box">
-<script>
-  atOptions = {
-    'key' : 'b0527e3b769f1aa6fea37eac558356e9',
-    'format' : 'iframe',
-    'height' : 60,
-    'width' : 468,
-    'params' : {}
-  };
-</script>
-<script src="https://brilliantconcealed.com/b0527e3b769f1aa6fea37eac558356e9/invoke.js"></script>
-</div>
-
-<div class="footer">
-© 2026 Live Cricket Stream | Powered by Cloudflare Pages
-</div>
-
-</div>
-
-<script>
-function changeStream(url){
-  document.getElementById("videoPlayer").src = url;
-}
-</script>
-
-<!-- YOUR SUPERCOUNTERS SCRIPT -->
-<center>
-<script type="text/javascript" src="//widget.supercounters.com/ssl/online_i.js"></script>
-<script type="text/javascript">sc_online_i(1729554,"ffffff","000000");</script>
-</center>
 
 </body>
 </html>
-
