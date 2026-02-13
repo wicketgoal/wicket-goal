@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Stream Player Fullscreen</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css" crossorigin="anonymous">
+
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+  }
+
+  .shaka-video-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .shaka-spinner-container,
+.shaka-spinner,
+.shaka-spinner-svg {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+
+
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+  }
+
+  /* LIVE Banner */
+  .live-banner {
+    position: absolute;
+    top: 20px;
+    right: 80px;
+    z-index: 10;
+    background: red;
+    color: white;
+    padding: 8px 16px;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+  }
+
+  /* Logo */
+  .logo {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    height: 60px;
+  }
+
+   /* Bottom-center overlay text (slightly higher) */
+  #overlay-text {
+    position: absolute;
+    bottom: 60px; /* moved higher */
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 22px;
+    font-weight: 700;
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.8);
+    z-index: 10;
+    pointer-events: none;
+    font-family: 'Roboto', sans-serif;
+  } /* Bottom-center overlay text */
+  #overlay-text {
+    position: absolute;
+    bottom: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1.2vw;
+    min-font-size: 12px;
+    max-font-size: 20px;
+    font-weight: 600;
+    text-shadow: 1px 1px 4px rgba(0,0,0,0.8);
+    z-index: 10;
+    pointer-events: none;
+    font-family: 'Roboto', sans-serif;
+  }
+
+  @media (max-width: 600px) {
+    #overlay-text {
+      font-size: 14px;
+      bottom: 8%;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- Logo -->
+<img  src="" alt="Logo">
+
+<!-- LIVE Banner -->
+<div class=""></div>
+
+<!-- Shaka Player Video Container -->
+<div class="shaka-video-container" data-shaka-player>
+  <video autoplay playsinline preload="metadata" poster="https://assets.tntsports.io/web/img/og/tntsports.jpg"></video>
+</div>
+<div id="overlay-text">WicketGoal.com</div>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  shaka.polyfill.installAll();
+
+  if (!shaka.Player.isBrowserSupported()) {
+    alert('Your browser does not support Shaka Player.');
+    return;
+  }
+
+  const video = document.querySelector('video');
+  const player = new shaka.Player(video);
+
+  const container = document.querySelector('.shaka-video-container');
+  const ui = new shaka.ui.Overlay(player, container, video);
+
+  ui.configure({
+    controlPanelElements: [
+      'play_pause', 'time_and_duration', 'mute', 'volume',
+      'spacer', 'quality', 'fullscreen'
+    ]
+  });
+
+  // Define multiple streams with their keys
+  const streams = {
+    "1": {
+      url: "https://a204aivottepl-a.akamaihd.net/sin-nitro/live/clients/dash/enc/fdb3pubmek/out/v1/aefca6420f944a9482e117f315de535f/cenc.mpd",
+      keyId: "7e9239c1982d984a002df3ed049d0756",
+      key: "1b8a17598129a3618535c8fb05f103fe"
+    },
+    "2": {
+      url: "https://ottb.live.cf.ww.aiv-cdn.net/lhr-nitro/live/dash/enc/wf8usag51e/out/v1/bd3b0c314fff4bb1ab4693358f3cd2d3/cenc.mpd",
+      keyId: "d0f2e5c39e70c18f29bf77768a1ad89a",
+      key: "d6853c51fcf37a18905f0609972395d7"
+    },
+    "3": {
+      url: "https://a166aivottlinear-a.akamaihd.net/OTTB/sin-nitro/live/clients/dash/enc/inpyms8ezu/out/v1/1084d5c9a97a4c5b9f9554c88f486646/cenc.mpd",
+      keyId: "065051b99bf5cf8d9a3bde5cbde6aaf9",
+      key: "214bd176832872339ce184338320f9a2"
+    },
+    "prime": { 
+      url: "https://a65live-pv-ta-amazon.akamaized.net/syd-nitro/live/clients/dash/enc/fclywfntvr/out/v1/e21d21ec21e34c7192049a44ee3de428/cenc.mpd",
+      keyId: "ed76c18710d621a87c89dedc7c13019f",
+      key: "7241c82fe48525a9dc6be6d7bb86611f"
+    },
+    "willow2": { 
+      url: "https://otte.live.fly.ww.aiv-cdn.net/iad-nitro/live/clients/dash/enc/wvylr4q2ne/out/v1/eb85f5cd635b45ccb7e12a5b30eedbca/cenc.mpd",
+      keyId: "159dd69da817d0d0ac8fda7e438cd60c",
+      key: "40d9fba7aebb69953b20bf7af83c29bd"
+    },
+
+  "willow": { 
+      url: "https://a201aivottlinear-a.akamaihd.net/OTTB/lhr-nitro/clients/dash/enc/f60kqesunw/out/v1/a435ed7a00f947deb4369b46d8f2fb70/cenc.mpd",
+      keyId: "1779c27b9d077a3ba0c9cc1bb9a94b9f",
+      key: "cc5cf3b7928fb9e0a1ee6a8b566f0a8e"
+    },
+
+    "wc": { 
+      url: "https://otte.live.fly.ww.aiv-cdn.net/bom-nitro/live/dash/enc/feh5lmnfkl/out/v1/2f30a0bcdbc64a09b2e101d0b71ed290/cenc.mpd",
+      keyId: "dc9ab6bff6028c1685847a104e2d5a21",
+      key: "de34baecf3f167ad1c847836397d38ca"
+    },
+  };
+
+  // Get ?id= parameter from the URL (e.g. ?id=2)
+  const urlParams = new URLSearchParams(window.location.search);
+  const id = urlParams.get('id') || "1"; // default to 1
+
+  const stream = streams[id];
+  if (!stream) {
+    alert("Invalid stream ID");
+    return;
+  }
+
+  // Configure DRM dynamically
+  player.configure({
+    drm: {
+      clearKeys: {
+        [stream.keyId]: stream.key
+      }
+    },
+    streaming: {
+      lowLatencyMode: true
+    }
+  });
+
+  // Load selected stream
+  try {
+    await player.load(stream.url);
+    console.log("✅ Loaded stream ID:", id);
+  } catch (error) {
+    console.error("❌ Failed to load stream:", error);
+    alert("Failed to load the selected live stream.");
+  }
+});
+</script>
+
+</body>
+</html>
