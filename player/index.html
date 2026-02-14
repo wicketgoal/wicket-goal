@@ -1,82 +1,80 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Player | Wicket Goal</title>
+<title>Stream with ID</title>
 
 <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
+body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  font-family: Tahoma, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-body{
-  background:black;
-  height:100vh;
-  overflow:hidden;
-  font-family:Arial, sans-serif;
+#player {
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 
-.player-wrapper{
-  width:100%;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:black;
-}
-
-iframe, video{
-  width:100%;
-  height:100%;
-  border:none;
-  background:black;
-}
-
-.error{
-  color:white;
-  text-align:center;
-  font-size:22px;
+#text {
+  position: fixed;
+  bottom: 50px;
+  width: 100%;
+  font-size: 18px;
+  color: #fff;
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
+  z-index: 9999;
 }
 </style>
+
 </head>
 
 <body>
 
-<div class="player-wrapper">
-  <iframe id="videoFrame" allowfullscreen allow="autoplay; encrypted-media"></iframe>
-</div>
+<iframe id="player" loading="lazy" allowfullscreen allow="autoplay"></iframe>
 
 <script>
+const channels = {
 
-/* 🔥 STREAM DATABASE (ONE LINK PER ID) */
-const streams = {
-  1: "https://allrounder-king.pages.dev/hub-4",
-  2: "https://example.com/embed-link-2",
-  3: "https://example.com/embed-link-3"
+  
+  OMA: "https://yonotv-now.pages.dev/dplyrr?src=https://global-media.sooplive.com/live/yonotv2025/master.m3u8",
+  SCO: "https://yonotv-now.pages.dev/dplyrr?src=https://global-media.sooplive.com/live/yonotv2025/master.m3u8"
+  SA: "https://yonotv-now.pages.dev/dplyrr?src=https://global-media.sooplive.com/live/yonotv2025/master.m3u8"
+
+
 };
 
-/* Get ID from URL */
-const params = new URLSearchParams(window.location.search);
-const id = params.get("id");
+// Get ?id= from URL
+const urlParams = new URLSearchParams(window.location.search);
+let channel = urlParams.get('id');
 
-/* Load video */
-if(streams[id]){
-  document.getElementById("videoFrame").src = streams[id];
-}else{
-  document.body.innerHTML = "<div class='error'>Stream Not Found</div>";
+// Default fallback channel
+const defaultChannel = "kick";
+
+function setChannel(id) {
+  const iframe = document.getElementById('player');
+
+  if (channels[id]) {
+    iframe.src = channels[id];
+  } else {
+    iframe.src = channels[defaultChannel];
+  }
 }
 
-/* Optional: Auto fullscreen on click */
-document.addEventListener("click", function(){
-  const iframe = document.getElementById("videoFrame");
-  if(iframe.requestFullscreen){
-    iframe.requestFullscreen();
-  }
-}, { once: true });
+// Auto load
+setChannel(channel);
 
+// Optional: prevent iframe refresh loop
+document.getElementById('player').addEventListener('error', function() {
+  console.log("Stream failed to load.");
+});
 </script>
 
 </body>
