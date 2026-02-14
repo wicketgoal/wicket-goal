@@ -22,61 +22,37 @@ body {
   height: 100%;
   border: none;
 }
-
-#text {
-  position: fixed;
-  bottom: 50px;
-  width: 100%;
-  font-size: 18px;
-  color: #fff;
-  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-}
 </style>
-
 </head>
 
 <body>
 
-<iframe id="player" loading="lazy" allowfullscreen allow="autoplay"></iframe>
+<iframe id="player" allowfullscreen allow="autoplay"></iframe>
 
 <script>
 const channels = {
 
-  
   OMA: "https://wicket-goal.pages.dev/m3u/?src=https://global-media.sooplive.com/live/yonotv2025/master.m3u8",
-  SCO: "https://wicket-goal.pages.dev/m3u/?src=https://global-media.sooplive.com/live/yonotv2025/master.m3u8"
-  SA: "https://wicket-goal.pages.dev/m3u/?src=https://global-media.sooplive.com/live/yonotv2025/master.m3u8"
-
+  SCO: "https://wicket-goal.pages.dev/m3u/?src=https://global-media.sooplive.com/live/yonotv2025/master.m3u8",
+  SA:  "https://wicket-goal.pages.dev/m3u/?src=https://global-media.sooplive.com/live/yonotv2025/master.m3u8"
 
 };
 
-// Get ?id= from URL
+// Get ?id=
 const urlParams = new URLSearchParams(window.location.search);
 let channel = urlParams.get('id');
 
-// Default fallback channel
-const defaultChannel = "kick";
+// Default fallback (must exist in object)
+const defaultChannel = "OMA";
 
 function setChannel(id) {
   const iframe = document.getElementById('player');
-
-  if (channels[id]) {
-    iframe.src = channels[id];
-  } else {
-    iframe.src = channels[defaultChannel];
-  }
+  iframe.src = channels[id] || channels[defaultChannel];
 }
 
-// Auto load
+// Load
 setChannel(channel);
-
-// Optional: prevent iframe refresh loop
-document.getElementById('player').addEventListener('error', function() {
-  console.log("Stream failed to load.");
-});
 </script>
 
 </body>
 </html>
-
