@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wicket Goal TV</title>
 
+<!-- HLS.js for .m3u8 -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
 body{background:#0f172a;color:#fff}
@@ -40,10 +43,14 @@ body{background:#0f172a;color:#fff}
   height:500px;
 }
 
+/* Video & iframe common */
+.player-box video,
 .player-box iframe{
   width:100%;
   height:100%;
   border:none;
+  object-fit:contain;
+  background:#000;
 }
 
 /* LIVE Banner */
@@ -83,7 +90,6 @@ body{background:#0f172a;color:#fff}
   background:#ff0000;
   color:#fff;
   border-radius:6px;
-  text-decoration:none;
   font-weight:bold;
   cursor:pointer;
   transition:0.3s;
@@ -115,7 +121,7 @@ body{background:#0f172a;color:#fff}
   margin-top:30px;
 }
 
-/* Bottom-center overlay text */
+/* Bottom overlay text */
 #overlay-text {
   position:absolute;
   bottom:5%;
@@ -157,24 +163,23 @@ body{background:#0f172a;color:#fff}
 🔥 Live Cricket Streaming
 </div>
 
-<script async="async" data-cfasync="false" src="https://brilliantconcealed.com/a5aea346f5ad084f5a2a9721d4d585fc/invoke.js"></script>
+<script async data-cfasync="false" src="https://brilliantconcealed.com/a5aea346f5ad084f5a2a9721d4d585fc/invoke.js"></script>
 <div id="container-a5aea346f5ad084f5a2a9721d4d585fc"></div>
 
 <div class="container">
 
   <!-- Player -->
-  <div class="player-box">
-    <iframe id="videoFrame" allowfullscreen allow="autoplay"></iframe>
+  <div class="player-box" id="playerBox">
     <div class="live-banner">LIVE</div>
-    <div id="overlay-text">WicketGoal.com</div>
+    <div id="overlay-text"></div>
   </div>
 
   <!-- Stream Buttons -->
   <div class="stream-buttons">
-    <div class="stream-btn" onclick="changeStream('smooth')">Smooth</div>
+    <div class="stream-btn" onclick="changeStream('willow')">English HD</div>
     <div class="stream-btn" onclick="changeStream('prime')">Prime HD</div>
-    <div class="stream-btn" onclick="changeStream('willow')">Willow HD</div>
-    <div class="stream-btn" onclick="changeStream('hub')">HTSTAR HD</div>
+      <div class="stream-btn" onclick="changeStream('jio')">IOS Device</div>
+    <div class="stream-btn" onclick="changeStream('hindi')">Hindi HD</div>
   </div>
 
 <div class="ad-box">
@@ -217,22 +222,53 @@ body{background:#0f172a;color:#fff}
 
 <script>
 const streams = {
-  "smooth": "https://allrounder-rho.vercel.app/prame.html",
-  "prime": "https://allrounder-rho.vercel.app/prame.html",
-  "willow": "https://allrounder-rho.vercel.app/prame.html",
-  "hub": "https://allrounder-king.pages.dev/channel/star-sports-2-hindi"
+  "willow": "https://wicket-goal.pages.dev/mpd/?id=willow",
+  "prime": "https://wicket-goal.pages.dev/mpd/?id=prime",
+  "jio": "https://wicket-goal.pages.dev/htstar/",
+  "hindi": "https://wicket-goal.pages.dev/player/?id=NP"
 };
 
+const playerBox = document.getElementById("playerBox");
+
 function changeStream(id){
-  const frame = document.getElementById("videoFrame");
-  if(streams[id]){
-    frame.src = streams[id];
-  } else {
+  const url = streams[id];
+  if(!url){
     alert("Invalid Stream");
+    return;
+  }
+
+  playerBox.innerHTML = `
+    <div class="live-banner">LIVE</div>
+    <div id="overlay-text">WicketGoal.com</div>
+  `;
+
+  if(url.endsWith(".m3u8")){
+    const video = document.createElement("video");
+    video.controls = true;
+    video.autoplay = true;
+    video.playsInline = true;
+
+    playerBox.prepend(video);
+
+    if(Hls.isSupported()){
+      const hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+    } else if(video.canPlayType('application/vnd.apple.mpegurl')){
+      video.src = url;
+    }
+  }
+  else{
+    const iframe = document.createElement("iframe");
+    iframe.src = url;
+    iframe.allowFullscreen = true;
+    iframe.allow = "autoplay";
+
+    playerBox.prepend(iframe);
   }
 }
 
-// Load from ?id= parameter
+// Auto load ?id=
 const urlParams = new URLSearchParams(window.location.search);
 let id = urlParams.get('id') || 'prime';
 changeStream(id);
@@ -245,7 +281,15 @@ changeStream(id);
 
 <!-- YOUR SUPERCOUNTERS SCRIPT -->
 <center>
-<script type="text/javascript" src="//widget.supercounters.com/ssl/online_i.js"></script>
-<script type="text/javascript">sc_online_i(1729554,"ffffff","000000");</script>
+<script src="//widget.supercounters.com/ssl/online_i.js"></script>
+<script>sc_online_i(1729554,"ffffff","000000");</script>
 </center>
+
+
+
+
+
+
+
+
 
