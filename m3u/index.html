@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WicketGoal Player</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="referrer" content="no-referrer">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="icon" href="https://player.style/favicon.ico">
+
+<!-- HLS + DPlayer -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/dplayer/dist/DPlayer.min.js"></script>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+}
+
+#dplayer {
+    width: 100%;
+    height: 100%;
+}
+</style>
+</head>
+
+<body>
+
+<div id="dplayer"></div>
+
+<script>
+function getParam(name) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(name);
+}
+
+const streamUrl = getParam("src");
+
+if(!streamUrl){
+    document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20%;'>No Stream Provided</h2>";
+    throw new Error("Missing src parameter");
+}
+
+const dp = new DPlayer({
+    container: document.getElementById('dplayer'),
+    autoplay: true,
+    live: true,
+    preload: "auto",
+    volume: 0.7,
+    video: {
+        url: streamUrl,
+        type: "hls"
+    },
+    lang: "en",
+    logo: "",
+    pluginOptions: {
+        hls: {
+            enableWorker: true,
+            lowLatencyMode: true
+        }
+    }
+});
+
+/* Optional auto-recover if stream crashes */
+dp.on('error', () => {
+    console.log("Stream error, retrying...");
+    setTimeout(() => {
+        dp.switchVideo({
+            url: streamUrl,
+            type: "hls"
+        });
+    }, 3000);
+});
+</script>
+
+</body>
+</html>
