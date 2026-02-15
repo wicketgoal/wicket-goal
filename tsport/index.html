@@ -1,86 +1,166 @@
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer">
-    <title>Prime TV</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/shaka-player.ui.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/controls.min.css" crossorigin="anonymous">
-    <style>
-        body { background-color: #000; margin: 0; }
-        .watermark {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 100px;
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        img { position:relative; right:130; bottom:10; margin:auto auto; max-width:20%; max-height:20%; object-fit:contain; pointer-events:none; }
-        .shaka-spinner-container { display:none; }
-        .uc { pointer-events:none; }
-        .shaka-current-time, .shaka-time-container { display: none; } /* Hide time display */
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hybrid Shaka Player</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css" crossorigin="anonymous">
+
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+    background: #000;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    font-family: sans-serif;
+}
+
+#shaka-wrapper, #iframe-container {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+video, iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: #000;
+    object-fit: contain;
+}
+
+.shaka-spinner-container { display: none !important; }
+
+/* Loader */
+#loader-container {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.pulse-loader {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+    animation: pulse 1.2s infinite cubic-bezier(0.66, 0, 0, 1);
+    margin-bottom: 15px;
+}
+
+@keyframes pulse {
+    to { box-shadow: 0 0 0 45px rgba(255, 255, 255, 0); }
+}
+
+#percentage-text {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    font-variant-numeric: tabular-nums;
+}
+</style>
 </head>
+
 <body>
-    <div data-shaka-player-container style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-        <video autoplay muted data-shaka-player id="video" poster="" style="width:100%; height:100%"></video>
+
+<div id="main-player-container">
+
+    <div id="shaka-wrapper" style="display:none;">
+        <video id="video-element" autoplay playsinline preload="metadata"></video>
     </div>
-    <script>
-       const mpdUrl = 'https://otte.live.fly.ww.aiv-cdn.net/syd-nitro/live/dash/enc/pnes4dv2ag/out/v1/e21d21ec21e34c7192049a44ee3de428/cenc.mpd';
-    const kid = 'ed76c18710d621a87c89dedc7c13019f';
-    const key = '7241c82fe48525a9dc6be6d7bb86611f';
-        let player;
-        let ui;
 
+    <div id="iframe-container" style="display:none;">
+        <iframe id="external-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    </div>
 
-        function initApp() {
-            shaka.polyfill.installAll();
+    <div id="loader-container">
+        <div class="pulse-loader"></div>
+        <div id="percentage-text">0%</div>
+    </div>
 
-            shaka.Player.probeSupport().then(function() {
-                const video = document.getElementById('video');
-                player = new shaka.Player(video);
+</div>
 
-                // Attach the player to the window to make it easy to access in the console
-                window.player = player;
+<script>
+document.addEventListener("DOMContentLoaded", async function () {
 
-                const drmConfig = {
-                    drm: {
-                        clearKeys: {
-                            [kid]: key // Set Clear Key
-                        }
-                    }
-                };
-                player.configure(drmConfig);
+    shaka.polyfill.installAll();
 
-                player.load(mpdUrl).then(function() {
-                    console.log('The video has now been loaded!');
-                }).catch(onPlayerError);
+    if (!shaka.Player.isBrowserSupported()) {
+        console.error("Shaka not supported");
+        return;
+    }
 
-                initializeUI(video);
-            }).catch(onPlayerError);
+    const video = document.getElementById("video-element");
+    const wrapper = document.getElementById("shaka-wrapper");
+    const iframeContainer = document.getElementById("iframe-container");
+    const iframe = document.getElementById("external-iframe");
+    const loader = document.getElementById("loader-container");
+    const percentageText = document.getElementById("percentage-text");
+
+    const player = new shaka.Player(video);
+    new shaka.ui.Overlay(player, wrapper, video);
+
+    video.addEventListener("waiting", () => {
+        loader.style.display = "flex";
+    });
+
+    video.addEventListener("playing", () => {
+        loader.style.display = "none";
+        percentageText.innerText = "0%";
+    });
+
+    try {
+        const response = await fetch("playlist.json"); 
+        const data = await response.json();
+
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get("id") || "default";
+
+        const stream = data[id];
+
+        if (!stream) return;
+
+        if (stream.type === "iframe") {
+            wrapper.style.display = "none";
+            iframeContainer.style.display = "block";
+            iframe.src = stream.url;
+            loader.style.display = "none";
+        } else {
+            iframeContainer.style.display = "none";
+            wrapper.style.display = "block";
+
+            player.configure({
+                streaming: {
+                    bufferingGoal: 15,
+                    rebufferingGoal: 5,
+                    jumpLargeGaps: true,
+                    useNativeHlsOnSafari: true
+                },
+                drm: {
+                    clearKeys: stream.clearKeys || {}
+                }
+            });
+
+            await player.load(stream.url.trim());
         }
 
-        function initializeUI(video) {
-            const container = document.querySelector('[data-shaka-player-container]');
+    } catch (err) {
+        console.error("Initialization failed");
+    }
 
-            // Create UI elements with Shaka's default configuration
-            ui = new shaka.ui.Overlay(player, container, video);
-            ui.getControls(); // This loads the default controls
+});
+</script>
 
-            // Set fullscreen button visibility if needed
-            ui.getControls().setEnabled(true);
-        }
-
-        function onPlayerError(event) {
-            console.error('Player error', event);
-        }
-
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
-    </body>
-    <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
-    <script disable-devtool-auto src="https://yonotv-now.pages.dev/click.js"></script>
+</body>
 </html>
-
