@@ -1,0 +1,85 @@
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="referrer" content="no-referrer">
+    <title>Prime TV</title>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/shaka-player.ui.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/controls.min.css" crossorigin="anonymous">
+    <style>
+        body { background-color: #000; margin: 0; }
+        .watermark {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 100px;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        img { position:relative; right:130; bottom:10; margin:auto auto; max-width:20%; max-height:20%; object-fit:contain; pointer-events:none; }
+        .shaka-spinner-container { display:none; }
+        .uc { pointer-events:none; }
+        .shaka-current-time, .shaka-time-container { display: none; } /* Hide time display */
+    </style>
+</head>
+<body>
+    <div data-shaka-player-container style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
+        <video autoplay muted data-shaka-player id="video" poster="" style="width:100%; height:100%"></video>
+    </div>
+    <script>
+       const mpdUrl = 'https://otte.live.fly.ww.aiv-cdn.net/syd-nitro/live/dash/enc/utvv87801b/out/v1/d9a29796c1c3468785dbee1776ffd354/cenc.mpd';
+    const kid = '531599a595f0a03ced73300beaec99b7';
+    const key = 'f5a77d391847790f46059cbb092d575b';
+        let player;
+        let ui;
+
+
+        function initApp() {
+            shaka.polyfill.installAll();
+
+            shaka.Player.probeSupport().then(function() {
+                const video = document.getElementById('video');
+                player = new shaka.Player(video);
+
+                // Attach the player to the window to make it easy to access in the console
+                window.player = player;
+
+                const drmConfig = {
+                    drm: {
+                        clearKeys: {
+                            [kid]: key // Set Clear Key
+                        }
+                    }
+                };
+                player.configure(drmConfig);
+
+                player.load(mpdUrl).then(function() {
+                    console.log('The video has now been loaded!');
+                }).catch(onPlayerError);
+
+                initializeUI(video);
+            }).catch(onPlayerError);
+        }
+
+        function initializeUI(video) {
+            const container = document.querySelector('[data-shaka-player-container]');
+
+            // Create UI elements with Shaka's default configuration
+            ui = new shaka.ui.Overlay(player, container, video);
+            ui.getControls(); // This loads the default controls
+
+            // Set fullscreen button visibility if needed
+            ui.getControls().setEnabled(true);
+        }
+
+        function onPlayerError(event) {
+            console.error('Player error', event);
+        }
+
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+    </body>
+    <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
+    <script disable-devtool-auto src="https://yonotv-now.pages.dev/click.js"></script>
+</html>
