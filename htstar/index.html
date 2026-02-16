@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,11 +19,9 @@ video:-webkit-full-screen,video:-moz-full-screen,video:fullscreen{object-fit:con
 </style>
 </head>
 <body>
-
 <div class="video-container">
 <video id="player" controls playsinline preload="metadata" muted poster="https://variety.com/wp-content/uploads/2017/12/hotstar.jpg?w=1000&h=525&crop=1"></video>
 </div>
-
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
 const src = new URLSearchParams(location.search).get("url") || "https://sayan-proxy.pages.dev/Hotstar";
@@ -30,7 +29,6 @@ const video = document.getElementById("player");
 const MAX_TRIES = 7;
 let tries = parseInt(sessionStorage.getItem("hls_reload") || "0");
 let streamReady = false;
-
 function reloadPage(){
     if(streamReady) return;
     if(tries < MAX_TRIES){
@@ -39,22 +37,18 @@ function reloadPage(){
         location.reload();
     }
 }
-
 const loadTimer = setTimeout(()=>{ if(!streamReady) reloadPage(); },7000);
-
 function markLoaded(){
     if(streamReady) return;
     streamReady = true;
     clearTimeout(loadTimer);
     sessionStorage.removeItem("hls_reload");
 }
-
 function getDefaultQuality(levels){
     let qs = [...new Set(levels.map(l=>l.height))].sort((a,b)=>b-a);
     let q = qs.find(x=>x<=720);
     return q || qs[qs.length-1];
 }
-
 if(Hls.isSupported()){
     const hls = new Hls({
         maxBufferLength:120,
@@ -65,19 +59,15 @@ if(Hls.isSupported()){
         capLevelToPlayerSize:true,
         enableWorker:true
     });
-
     hls.loadSource(src);
     hls.attachMedia(video);
-
     hls.on(Hls.Events.MANIFEST_PARSED,(_,data)=>{
         markLoaded();
         let qualities = [...new Set(data.levels.map(l=>l.height))].sort((a,b)=>b-a);
         if(qualities.length === 0) qualities = [360];
-
         let defaultQ = getDefaultQuality(data.levels);
         let defaultIndex = data.levels.findIndex(l => l.height === defaultQ);
         if(defaultIndex !== -1) hls.startLevel = defaultIndex;
-
         const player = new Plyr(video,{
             muted:true,
             volume:1,
@@ -91,27 +81,22 @@ if(Hls.isSupported()){
                 }
             }
         });
-
         player.on("play",()=>{
             video.muted=false;
             video.volume=1;
         });
     });
-
     hls.on(Hls.Events.ERROR,(e,data)=>{
         if(data.fatal && !streamReady) reloadPage();
     });
-
 }else{
     video.src = src;
     video.addEventListener("loadedmetadata", markLoaded);
-
     const player = new Plyr(video,{
         muted:true,
         volume:1,
         controls:["play-large","play","progress","current-time","mute","volume","settings","pip","fullscreen"]
     });
-
     player.on("play",()=>{
         video.muted=false;
         video.volume=1;
@@ -119,10 +104,6 @@ if(Hls.isSupported()){
 }
 });
 </script>
-
-<!-- Cloudflare Pages Analytics -->
-<script defer src='https://static.cloudflareinsights.com/beacon.min.js'
-data-cf-beacon='{"token": "7066eff086604cba8cfb76441016ea94"}'></script>
-
-</body>
+    <script>(function(s){s.dataset.zone='10603308',s.src='https://bvtpk.com/tag.min.js'})([document.documentElement, document.body].filter(Boolean).pop().appendChild(document.createElement('script')))</script>
+<!-- Cloudflare Pages Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "7066eff086604cba8cfb76441016ea94"}'></script><!-- Cloudflare Pages Analytics --></body>
 </html>
