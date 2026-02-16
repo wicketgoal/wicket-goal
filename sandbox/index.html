@@ -1,0 +1,64 @@
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stream with ID</title>
+
+<style>
+body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  font-family: Tahoma, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+#player {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+</style>
+</head>
+
+<body>
+
+<iframe 
+  id="player"
+  allowfullscreen
+  allow="autoplay; fullscreen"
+  sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
+</iframe>
+
+<script>
+const channels = {
+
+  EG5: ":https://all-video-player-sayan.pages.dev/PLYR.html/?url=https://dillzylive.pages.dev/Hotstar",
+  AS5: ":https://all-video-player-sayan.pages.dev/PLYR.html/?url=https://dillzylive.pages.dev/Hotstar",
+ 
+  AS3: "https://wicket-goal.pages.dev/tsport"
+
+};
+
+// Get ?id=
+const urlParams = new URLSearchParams(window.location.search);
+let channel = urlParams.get('id');
+
+// Default fallback
+const defaultChannel = "AFG";
+
+function setChannel(id) {
+  const iframe = document.getElementById('player');
+  iframe.src = channels[id] || channels[defaultChannel];
+}
+
+// Load
+setChannel(channel);
+</script>
+
+</body>
+</html>
