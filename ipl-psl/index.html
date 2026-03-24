@@ -104,29 +104,25 @@ body{
    LOGO HANDLER (SMART)
 ========================= */
 
+
 function getLogo(team){
 
   if(!team) return "";
 
-  /* convert name → willow format */
   let slug = team
     .toLowerCase()
     .replace(/&/g, "and")
-    .replace(/[^a-z0-9]/g, ""); // remove spaces + special chars
+    .replace(/[^a-z0-9]/g, "");
 
-  return `https://aimages.willow.tv/teamLogos/${slug}.png`;
+  const url = `https://aimages.willow.tv/teamLogos/${slug}.png`;
 
+  return `
+    <img src="${url}" 
+         onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff';"
+         class="w-14 h-14 mx-auto object-contain">
+  `;
 }
 
-  const code = map[team];
-
-  if(code){
-    return `https://h.cricapi.com/img/teams/${code}.png`;
-  }
-
-  /* fallback avatar */
-  return `https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff&bold=true`;
-}
 
 /* =========================
    COUNTDOWN (DAYS + HOURS)
