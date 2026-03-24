@@ -105,23 +105,18 @@ body{
 ========================= */
 
 function getLogo(team){
-  const map = {
-    "Chennai Super Kings":"csk",
-    "Mumbai Indians":"mi",
-    "Royal Challengers Bengaluru":"rcb",
-    "Kolkata Knight Riders":"kkr",
-    "Delhi Capitals":"dc",
-    "Punjab Kings":"pbks",
-    "Rajasthan Royals":"rr",
-    "Sunrisers Hyderabad":"srh",
 
-    "Lahore Qalandars":"lq",
-    "Karachi Kings":"kk",
-    "Peshawar Zalmi":"pz",
-    "Islamabad United":"iu",
-    "Multan Sultans":"ms",
-    "Quetta Gladiators":"qg"
-  };
+  if(!team) return "";
+
+  /* convert name → willow format */
+  let slug = team
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]/g, ""); // remove spaces + special chars
+
+  return `https://aimages.willow.tv/teamLogos/${slug}.png`;
+
+}
 
   const code = map[team];
 
