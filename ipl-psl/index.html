@@ -101,11 +101,34 @@ body{
 <script>
 
 /* =========================
-   LOGO HANDLER (SMART)
+   TEAM SHORT NAMES
 ========================= */
 
+const teamShort = {
+  "Mumbai Indians":"MI",
+  "Chennai Super Kings":"CSK",
+  "Royal Challengers Bengaluru":"RCB",
+  "Kolkata Knight Riders":"KKR",
+  "Delhi Capitals":"DC",
+  "Punjab Kings":"PBKS",
+  "Rajasthan Royals":"RR",
+  "Sunrisers Hyderabad":"SRH",
 
-function getLogo(team, isLive=false){
+  "Lahore Qalandars":"LQ",
+  "Karachi Kings":"KK",
+  "Peshawar Zalmi":"PZ",
+  "Islamabad United":"IU",
+  "Multan Sultans":"MS",
+  "Quetta Gladiators":"QG"
+};
+
+/* =========================
+   LOGO FUNCTION (FIXED)
+========================= */
+
+function getLogo(team, isLive){
+
+  if(!team) return "";
 
   let slug = team
     .toLowerCase()
@@ -115,27 +138,29 @@ function getLogo(team, isLive=false){
   const url = `https://aimages.willow.tv/teamLogos/${slug}.png`;
 
   return `
-  <div class="relative flex flex-col items-center">
+    <div class="flex flex-col items-center">
+      
+      <div class="${isLive ? 'animate-pulse ring-2 ring-red-500 rounded-full p-1' : ''}">
+        <img src="${url}"
+             loading="lazy"
+             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff';"
+             class="w-14 h-14 rounded-full object-contain bg-black p-1">
+      </div>
 
-    <div class="${isLive ? 'animate-pulse ring-2 ring-red-500 rounded-full p-1' : ''}">
-      <img src="${url}" 
-           loading="lazy"
-           onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff';"
-           class="w-14 h-14 rounded-full object-contain bg-black p-1 shadow-lg">
+      <div class="text-xs mt-1 bg-white/10 px-2 py-[2px] rounded-full font-bold">
+        ${teamShort[team] || team.slice(0,3).toUpperCase()}
+      </div>
+
     </div>
-
-    <div class="text-xs mt-1 bg-white/10 px-2 py-[2px] rounded-full font-bold">
-      ${teamShort[team] || team.slice(0,3).toUpperCase()}
-    </div>
-
-  </div>`;
+  `;
 }
 
-
-   COUNTDOWN (DAYS + HOURS)
+/* =========================
+   COUNTDOWN
 ========================= */
 
 function getCountdown(startTime){
+
   const now = new Date();
   const diff = new Date(startTime) - now;
 
@@ -148,14 +173,14 @@ function getCountdown(startTime){
 }
 
 /* =========================
-   CARD
+   MATCH CARD
 ========================= */
 
 function createMatchCard(m){
 
   const team1 = m.team1;
   const team2 = m.team2;
-  const league = m.league || "League";
+  const league = m.league;
 
   const start = new Date(m.start_time);
 
@@ -166,44 +191,49 @@ function createMatchCard(m){
   const isLive = countdown === "LIVE";
 
   return `
-  <article class="glass rounded-2xl p-5 shadow-2xl hover:scale-[1.02] transition">
+  <article class="glass rounded-2xl p-5 shadow-2xl hover:scale-[1.03] transition">
 
+    <!-- League Badge -->
     <div class="flex justify-between items-center">
       <span class="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-indigo-500 font-bold">
         ${league}
       </span>
+
+      ${isLive ? `<span class="text-xs bg-red-600 px-2 py-1 rounded-full animate-pulse">LIVE</span>` : ""}
     </div>
 
-    <div class="flex items-center justify-between mt-4">
+    <!-- Teams -->
+    <div class="flex items-center justify-between mt-5">
       
       <div class="text-center w-2/5">
-        <img src="${getLogo(team1)}" class="w-14 h-14 mx-auto object-contain">
-        <div class="font-bold text-sm mt-1">${team1}</div>
+        ${getLogo(team1, isLive)}
+        <div class="font-semibold text-sm mt-2">${team1}</div>
       </div>
 
       <div class="text-yellow-400 font-black text-xl">VS</div>
 
       <div class="text-center w-2/5">
-        <img src="${getLogo(team2)}" class="w-14 h-14 mx-auto object-contain">
-        <div class="font-bold text-sm mt-1">${team2}</div>
+        ${getLogo(team2, isLive)}
+        <div class="font-semibold text-sm mt-2">${team2}</div>
       </div>
 
     </div>
 
-    <div class="text-xs leading-6 mt-4 opacity-90">
-      📅 ${date}<br>
-      ⏰ ${time}<br>
+    <!-- Info -->
+    <div class="text-xs leading-6 mt-5 opacity-90 text-center">
+      📅 ${date} • ⏰ ${time}<br>
       📍 ${m.venue || "TBA"}<br>
       ⏳ ${countdown}
     </div>
 
+    <!-- Button -->
     ${
       isLive
       ? `<a href="/match/${team1.toLowerCase().replace(/ /g,'-')}-vs-${team2.toLowerCase().replace(/ /g,'-')}/"
-           class="live-glow block mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-red-600 to-pink-500">
+           class="live-glow block mt-5 text-center py-3 rounded-xl font-black bg-gradient-to-r from-red-600 to-pink-500">
            🔴 Watch Live
          </a>`
-      : `<div class="mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">
+      : `<div class="mt-5 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">
            Upcoming Match
          </div>`
     }
@@ -222,6 +252,8 @@ async function loadMatches(){
 
   const box = document.getElementById("matches");
 
+  if(!box) return;
+
   box.innerHTML = "Loading live matches...";
 
   try{
@@ -234,14 +266,11 @@ async function loadMatches(){
     const iplData = await iplRes.json();
     const pslData = await pslRes.json();
 
-    /* ADD LEAGUE TAG */
     const iplMatches = (iplData.matches || []).map(m => ({...m, league:"IPL"}));
     const pslMatches = (pslData.matches || []).map(m => ({...m, league:"PSL"}));
 
-    /* MERGE */
     let allMatches = [...iplMatches, ...pslMatches];
 
-    /* SORT BY TIME */
     allMatches.sort((a,b)=> new Date(a.start_time) - new Date(b.start_time));
 
     box.innerHTML = "";
@@ -251,18 +280,21 @@ async function loadMatches(){
     });
 
   }catch(e){
-    box.innerHTML = "Failed to load matches";
     console.error(e);
+    box.innerHTML = "Failed to load matches";
   }
 }
 
+/* RUN */
 loadMatches();
 
 /* AUTO REFRESH */
 setInterval(loadMatches, 30000);
 
 </script>
-<script src="https://brilliantconcealed.com/84/7e/72/847e72f260203d9209f3a3358af309b0.js"></script>
+  
+  
+  <script src="https://brilliantconcealed.com/84/7e/72/847e72f260203d9209f3a3358af309b0.js"></script>
 <script src="https://brilliantconcealed.com/2d/d1/e3/2dd1e348601ccd867d8d70b5d98e53b4.js"></script>  
 </body>
 </html>
