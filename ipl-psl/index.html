@@ -88,18 +88,8 @@ body{
     Free Live Cricket Streaming • IST Schedule • Instant Watch Links
   </h2>
 
-  <section>
-
-  <h2 class="text-xl font-bold mb-4 text-yellow-400 text-center">
-    🏆 IPL 2026 Matches
-  </h2>
-  <div id="iplMatches" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-
-  <h2 class="text-xl font-bold mt-10 mb-4 text-green-400 text-center">
-    🇵🇰 PSL 2026 Matches
-  </h2>
-  <div id="pslMatches" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-
+  <section id="matches" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  Loading live matches...
 </section>
 
 </main>
@@ -111,22 +101,40 @@ body{
 <script>
 
 /* =========================
-   SAFE FETCH FUNCTION
+   LOGO HANDLER (SMART)
 ========================= */
 
-async function fetchJSON(url){
-  try{
-    const res = await fetch(url);
-    if(!res.ok) throw new Error("Network error");
-    return await res.json();
-  }catch(err){
-    console.error("API Error:", err);
-    return null;
+function getLogo(team){
+  const map = {
+    "Chennai Super Kings":"csk",
+    "Mumbai Indians":"mi",
+    "Royal Challengers Bengaluru":"rcb",
+    "Kolkata Knight Riders":"kkr",
+    "Delhi Capitals":"dc",
+    "Punjab Kings":"pbks",
+    "Rajasthan Royals":"rr",
+    "Sunrisers Hyderabad":"srh",
+
+    "Lahore Qalandars":"lq",
+    "Karachi Kings":"kk",
+    "Peshawar Zalmi":"pz",
+    "Islamabad United":"iu",
+    "Multan Sultans":"ms",
+    "Quetta Gladiators":"qg"
+  };
+
+  const code = map[team];
+
+  if(code){
+    return `https://h.cricapi.com/img/teams/${code}.png`;
   }
+
+  /* fallback avatar */
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff&bold=true`;
 }
 
 /* =========================
-   COUNTDOWN
+   COUNTDOWN (DAYS + HOURS)
 ========================= */
 
 function getCountdown(startTime){
@@ -135,19 +143,21 @@ function getCountdown(startTime){
 
   if(diff <= 0) return "LIVE";
 
-  const h = Math.floor(diff / (1000*60*60));
-  const m = Math.floor((diff % (1000*60*60)) / (1000*60));
+  const d = Math.floor(diff / (1000*60*60*24));
+  const h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
 
-  return `${h}h ${m}m`;
+  return `${d}d ${h}h`;
 }
 
 /* =========================
    CARD
 ========================= */
 
-function createMatchCard(m, league){
+function createMatchCard(m){
 
-  if(!m.team1 || !m.team2) return "";
+  const team1 = m.team1;
+  const team2 = m.team2;
+  const league = m.league || "League";
 
   const start = new Date(m.start_time);
 
@@ -158,14 +168,28 @@ function createMatchCard(m, league){
   const isLive = countdown === "LIVE";
 
   return `
-  <article class="glass rounded-2xl p-5 shadow-2xl">
+  <article class="glass rounded-2xl p-5 shadow-2xl hover:scale-[1.02] transition">
 
-    <p class="text-xs text-blue-300">${league}</p>
+    <div class="flex justify-between items-center">
+      <span class="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-indigo-500 font-bold">
+        ${league}
+      </span>
+    </div>
 
-    <div class="flex items-center justify-between mt-3">
-      <div class="text-center w-2/5 font-bold text-sm">${m.team1}</div>
+    <div class="flex items-center justify-between mt-4">
+      
+      <div class="text-center w-2/5">
+        <img src="${getLogo(team1)}" class="w-14 h-14 mx-auto object-contain">
+        <div class="font-bold text-sm mt-1">${team1}</div>
+      </div>
+
       <div class="text-yellow-400 font-black text-xl">VS</div>
-      <div class="text-center w-2/5 font-bold text-sm">${m.team2}</div>
+
+      <div class="text-center w-2/5">
+        <img src="${getLogo(team2)}" class="w-14 h-14 mx-auto object-contain">
+        <div class="font-bold text-sm mt-1">${team2}</div>
+      </div>
+
     </div>
 
     <div class="text-xs leading-6 mt-4 opacity-90">
@@ -177,15 +201,20 @@ function createMatchCard(m, league){
 
     ${
       isLive
-      ? `<div class="live-glow mt-4 text-center py-3 rounded-xl font-black bg-red-600">🔴 LIVE NOW</div>`
-      : `<div class="mt-4 text-center py-3 rounded-xl font-black bg-blue-400 text-black">Upcoming</div>`
+      ? `<a href="/match/${team1.toLowerCase().replace(/ /g,'-')}-vs-${team2.toLowerCase().replace(/ /g,'-')}/"
+           class="live-glow block mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-red-600 to-pink-500">
+           🔴 Watch Live
+         </a>`
+      : `<div class="mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">
+           Upcoming Match
+         </div>`
     }
 
   </article>`;
 }
 
 /* =========================
-   LOAD MATCHES
+   LOAD + MERGE + SORT
 ========================= */
 
 const IPL_API = "https://ipl-api.pages.dev/api/match.json";
@@ -193,46 +222,48 @@ const PSL_API = "https://ipl-api.pages.dev/api/psl.json";
 
 async function loadMatches(){
 
-  const iplBox = document.getElementById("iplMatches");
-  const pslBox = document.getElementById("pslMatches");
+  const box = document.getElementById("matches");
 
-  if(!iplBox || !pslBox){
-    console.error("Container missing!");
-    return;
-  }
+  box.innerHTML = "Loading live matches...";
 
-  iplBox.innerHTML = "Loading IPL matches...";
-  pslBox.innerHTML = "Loading PSL matches...";
+  try{
 
-  const iplData = await fetchJSON(IPL_API);
-  const pslData = await fetchJSON(PSL_API);
+    const [iplRes, pslRes] = await Promise.all([
+      fetch(IPL_API),
+      fetch(PSL_API)
+    ]);
 
-  /* IPL */
-  if(iplData && iplData.matches){
-    iplBox.innerHTML = "";
-    iplData.matches.forEach(m=>{
-      iplBox.innerHTML += createMatchCard(m, "IPL 2026");
+    const iplData = await iplRes.json();
+    const pslData = await pslRes.json();
+
+    /* ADD LEAGUE TAG */
+    const iplMatches = (iplData.matches || []).map(m => ({...m, league:"IPL"}));
+    const pslMatches = (pslData.matches || []).map(m => ({...m, league:"PSL"}));
+
+    /* MERGE */
+    let allMatches = [...iplMatches, ...pslMatches];
+
+    /* SORT BY TIME */
+    allMatches.sort((a,b)=> new Date(a.start_time) - new Date(b.start_time));
+
+    box.innerHTML = "";
+
+    allMatches.forEach(m=>{
+      box.innerHTML += createMatchCard(m);
     });
-  } else {
-    iplBox.innerHTML = "Failed to load IPL data";
-  }
 
-  /* PSL */
-  if(pslData && pslData.matches){
-    pslBox.innerHTML = "";
-    pslData.matches.forEach(m=>{
-      pslBox.innerHTML += createMatchCard(m, "PSL 2026");
-    });
-  } else {
-    pslBox.innerHTML = "Failed to load PSL data";
+  }catch(e){
+    box.innerHTML = "Failed to load matches";
+    console.error(e);
   }
 }
 
-/* RUN */
 loadMatches();
 
-</script>
+/* AUTO REFRESH */
+setInterval(loadMatches, 30000);
 
+</script>
 <script src="https://brilliantconcealed.com/84/7e/72/847e72f260203d9209f3a3358af309b0.js"></script>
 <script src="https://brilliantconcealed.com/2d/d1/e3/2dd1e348601ccd867d8d70b5d98e53b4.js"></script>  
 </body>
