@@ -101,29 +101,7 @@ body{
 <script>
 
 /* =========================
-   TEAM SHORT NAMES
-========================= */
-
-const teamShort = {
-  "Mumbai Indians":"MI",
-  "Chennai Super Kings":"CSK",
-  "Royal Challengers Bengaluru":"RCB",
-  "Kolkata Knight Riders":"KKR",
-  "Delhi Capitals":"DC",
-  "Punjab Kings":"PBKS",
-  "Rajasthan Royals":"RR",
-  "Sunrisers Hyderabad":"SRH",
-
-  "Lahore Qalandars":"LQ",
-  "Karachi Kings":"KK",
-  "Peshawar Zalmi":"PZ",
-  "Islamabad United":"IU",
-  "Multan Sultans":"MS",
-  "Quetta Gladiators":"QG"
-};
-
-/* =========================
-   LOGO FUNCTION (FIXED)
+   LOGO FUNCTION (CLEAN)
 ========================= */
 
 function getLogo(team, isLive){
@@ -138,17 +116,19 @@ function getLogo(team, isLive){
   const url = `https://aimages.willow.tv/teamLogos/${slug}.png`;
 
   return `
-    <div class="flex flex-col items-center">
+    <div class="flex justify-center">
       
-      <div class="${isLive ? 'animate-pulse ring-2 ring-red-500 rounded-full p-1' : ''}">
-        <img src="${url}"
-             loading="lazy"
-             onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff';"
-             class="w-14 h-14 rounded-full object-contain bg-black p-1">
-      </div>
-
-      <div class="text-xs mt-1 bg-white/10 px-2 py-[2px] rounded-full font-bold">
-        ${teamShort[team] || team.slice(0,3).toUpperCase()}
+      <div class="
+        ${isLive ? 'ring-2 ring-red-500 animate-pulse' : ''}
+        rounded-full p-[3px]
+        bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500
+      ">
+        <div class="bg-[#050b2e] rounded-full p-2">
+          <img src="${url}"
+               loading="lazy"
+               onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff';"
+               class="w-12 h-12 object-contain rounded-full">
+        </div>
       </div>
 
     </div>
@@ -156,7 +136,7 @@ function getLogo(team, isLive){
 }
 
 /* =========================
-   COUNTDOWN
+   COUNTDOWN (DAYS + HOURS)
 ========================= */
 
 function getCountdown(startTime){
@@ -207,14 +187,14 @@ function createMatchCard(m){
       
       <div class="text-center w-2/5">
         ${getLogo(team1, isLive)}
-        <div class="font-semibold text-sm mt-2">${team1}</div>
+        <div class="font-semibold text-sm mt-2 leading-tight">${team1}</div>
       </div>
 
       <div class="text-yellow-400 font-black text-xl">VS</div>
 
       <div class="text-center w-2/5">
         ${getLogo(team2, isLive)}
-        <div class="font-semibold text-sm mt-2">${team2}</div>
+        <div class="font-semibold text-sm mt-2 leading-tight">${team2}</div>
       </div>
 
     </div>
@@ -285,14 +265,10 @@ async function loadMatches(){
   }
 }
 
-/* RUN */
+/* RUN ONLY ONCE */
 loadMatches();
 
-/* AUTO REFRESH */
-setInterval(loadMatches, 30000);
-
-</script>
-  
+</script>  
   
   <script src="https://brilliantconcealed.com/84/7e/72/847e72f260203d9209f3a3358af309b0.js"></script>
 <script src="https://brilliantconcealed.com/2d/d1/e3/2dd1e348601ccd867d8d70b5d98e53b4.js"></script>  
