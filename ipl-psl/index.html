@@ -101,18 +101,57 @@ body{
 <script>
 
 /* =========================
-   COMMON FUNCTION
+   TEAM LOGOS (AUTO MAP)
+========================= */
+
+const teamLogos = {
+  // IPL
+  "Chennai Super Kings":"https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50/lsci/db/PICTURES/CMS/317400/317422.png",
+  "Mumbai Indians":"https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50/lsci/db/PICTURES/CMS/317400/317408.png",
+  "Royal Challengers Bengaluru":"https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50/lsci/db/PICTURES/CMS/317400/317414.png",
+  "Kolkata Knight Riders":"https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50/lsci/db/PICTURES/CMS/317400/317419.png",
+  "Delhi Capitals":"https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50,q_50/lsci/db/PICTURES/CMS/317400/317417.png",
+
+  // PSL
+  "Lahore Qalandars":"https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50/lsci/db/PICTURES/CMS/313100/313128.logo.png",
+  "Karachi Kings":"https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50/lsci/db/PICTURES/CMS/313100/313129.logo.png",
+  "Peshawar Zalmi":"https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50/lsci/db/PICTURES/CMS/313100/313130.logo.png",
+  "Islamabad United":"https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50/lsci/db/PICTURES/CMS/313100/313131.logo.png"
+};
+
+/* =========================
+   COUNTDOWN FUNCTION
+========================= */
+
+function getCountdown(startTime){
+  const now = new Date();
+  const diff = new Date(startTime) - now;
+
+  if(diff <= 0) return "LIVE NOW";
+
+  const h = Math.floor(diff / (1000*60*60));
+  const m = Math.floor((diff % (1000*60*60)) / (1000*60));
+
+  return `${h}h ${m}m`;
+}
+
+/* =========================
+   MATCH CARD
 ========================= */
 
 function createMatchCard(m, league){
-  
-  const team1 = m.team1 || m.teama || "TBA";
-  const team2 = m.team2 || m.teamb || "TBA";
+
+  const team1 = m.team1;
+  const team2 = m.team2;
   const venue = m.venue || "TBA";
 
   const start = new Date(m.start_time);
+
   const date = start.toLocaleDateString();
-  const time = start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+  const time = start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+  const countdown = getCountdown(m.start_time);
+  const isLive = countdown === "LIVE NOW";
 
   return `
   <article class="glass rounded-2xl p-5 shadow-2xl hover:scale-[1.02] transition">
@@ -122,13 +161,15 @@ function createMatchCard(m, league){
     <div class="flex items-center justify-between mt-3">
       
       <div class="text-center w-2/5">
-        <div class="font-bold text-sm">${team1}</div>
+        <img src="${teamLogos[team1] || ''}" class="w-14 h-14 mx-auto">
+        <div class="font-bold text-sm mt-1">${team1}</div>
       </div>
 
       <div class="text-yellow-400 font-black text-xl">VS</div>
 
       <div class="text-center w-2/5">
-        <div class="font-bold text-sm">${team2}</div>
+        <img src="${teamLogos[team2] || ''}" class="w-14 h-14 mx-auto">
+        <div class="font-bold text-sm mt-1">${team2}</div>
       </div>
 
     </div>
@@ -136,30 +177,41 @@ function createMatchCard(m, league){
     <div class="text-xs leading-6 mt-4 opacity-90">
       📅 ${date}<br>
       ⏰ ${time}<br>
-      📍 ${venue}
+      📍 ${venue}<br>
+      ⏳ ${countdown}
     </div>
 
-    <a href="/match/${team1.toLowerCase()}-vs-${team2.toLowerCase()}/"
-       class="live-glow block mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-pink-600 to-orange-500">
-       ▶ Watch Now
-    </a>
+    ${
+      isLive
+      ? `<a href="/match/${team1.toLowerCase().replace(/ /g,'-')}-vs-${team2.toLowerCase().replace(/ /g,'-')}/"
+           class="live-glow block mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-red-600 to-pink-500">
+           🔴 Watch Live
+         </a>`
+      : `<div class="mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">
+           Upcoming Match
+         </div>`
+    }
 
   </article>`;
 }
 
-
 /* =========================
-   LOAD IPL + PSL
+   LOAD DATA
 ========================= */
 
 const IPL_API = "https://ipl-api.pages.dev/api/match.json";
 const PSL_API = "https://ipl-api.pages.dev/api/psl.json";
 
 async function loadMatches(){
-  const box = document.getElementById("matches");
-  box.innerHTML = "Loading matches...";
+
+  const iplBox = document.getElementById("iplMatches");
+  const pslBox = document.getElementById("pslMatches");
+
+  iplBox.innerHTML = "Loading IPL...";
+  pslBox.innerHTML = "Loading PSL...";
 
   try{
+
     const [iplRes, pslRes] = await Promise.all([
       fetch(IPL_API),
       fetch(PSL_API)
@@ -168,28 +220,33 @@ async function loadMatches(){
     const iplData = await iplRes.json();
     const pslData = await pslRes.json();
 
-    box.innerHTML = "";
+    iplBox.innerHTML = "";
+    pslBox.innerHTML = "";
 
-    /* IPL */
     iplData.matches.forEach(m=>{
-      box.innerHTML += createMatchCard(m, "IPL 2026");
+      iplBox.innerHTML += createMatchCard(m, "IPL 2026");
     });
 
-    /* PSL */
     pslData.matches.forEach(m=>{
-      box.innerHTML += createMatchCard(m, "PSL 2026");
+      pslBox.innerHTML += createMatchCard(m, "PSL 2026");
     });
 
   }catch(e){
-    box.innerHTML = "Failed to load matches.";
+    iplBox.innerHTML = "Failed to load IPL";
+    pslBox.innerHTML = "Failed to load PSL";
     console.error(e);
   }
 }
 
 loadMatches();
 
-</script>
+/* =========================
+   AUTO REFRESH (EVERY 30s)
+========================= */
 
+setInterval(loadMatches, 30000);
+
+</script>
 
 
 <script src="https://brilliantconcealed.com/84/7e/72/847e72f260203d9209f3a3358af309b0.js"></script>
