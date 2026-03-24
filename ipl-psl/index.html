@@ -105,9 +105,7 @@ body{
 ========================= */
 
 
-function getLogo(team){
-
-  if(!team) return "";
+function getLogo(team, isLive=false){
 
   let slug = team
     .toLowerCase()
@@ -117,14 +115,23 @@ function getLogo(team){
   const url = `https://aimages.willow.tv/teamLogos/${slug}.png`;
 
   return `
-    <img src="${url}" 
-         onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff';"
-         class="w-14 h-14 mx-auto object-contain">
-  `;
+  <div class="relative flex flex-col items-center">
+
+    <div class="${isLive ? 'animate-pulse ring-2 ring-red-500 rounded-full p-1' : ''}">
+      <img src="${url}" 
+           loading="lazy"
+           onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff';"
+           class="w-14 h-14 rounded-full object-contain bg-black p-1 shadow-lg">
+    </div>
+
+    <div class="text-xs mt-1 bg-white/10 px-2 py-[2px] rounded-full font-bold">
+      ${teamShort[team] || team.slice(0,3).toUpperCase()}
+    </div>
+
+  </div>`;
 }
 
 
-/* =========================
    COUNTDOWN (DAYS + HOURS)
 ========================= */
 
