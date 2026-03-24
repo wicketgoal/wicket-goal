@@ -156,6 +156,7 @@ function getCountdown(startTime){
    MATCH CARD
 ========================= */
 
+
 function createMatchCard(m){
 
   const team1 = m.team1;
@@ -163,12 +164,21 @@ function createMatchCard(m){
   const league = m.league;
 
   const start = new Date(m.start_time);
+  const now = new Date();
 
   const date = start.toLocaleDateString();
   const time = start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
   const countdown = getCountdown(m.start_time);
-  const isLive = countdown === "LIVE";
+
+  /* 15 MIN LOGIC */
+  const clickableTime = new Date(start.getTime() - 15 * 60 * 1000);
+  const isClickable = now >= clickableTime;
+
+  /* slug for URL */
+  const slug = team1.toLowerCase().replace(/[^a-z0-9]/g,'');
+
+  const matchURL = `https://match-details.wicketgoal-tv.com/?match=${slug}`;
 
   return `
   <article class="glass rounded-2xl p-5 shadow-2xl hover:scale-[1.03] transition">
@@ -179,22 +189,22 @@ function createMatchCard(m){
         ${league}
       </span>
 
-      ${isLive ? `<span class="text-xs bg-red-600 px-2 py-1 rounded-full animate-pulse">LIVE</span>` : ""}
+      ${countdown === "LIVE" ? `<span class="text-xs bg-red-600 px-2 py-1 rounded-full animate-pulse">LIVE</span>` : ""}
     </div>
 
     <!-- Teams -->
     <div class="flex items-center justify-between mt-5">
       
       <div class="text-center w-2/5">
-        ${getLogo(team1, isLive)}
-        <div class="font-semibold text-sm mt-2 leading-tight">${team1}</div>
+        ${getLogo(team1, countdown === "LIVE")}
+        <div class="font-semibold text-sm mt-2">${team1}</div>
       </div>
 
       <div class="text-yellow-400 font-black text-xl">VS</div>
 
       <div class="text-center w-2/5">
-        ${getLogo(team2, isLive)}
-        <div class="font-semibold text-sm mt-2 leading-tight">${team2}</div>
+        ${getLogo(team2, countdown === "LIVE")}
+        <div class="font-semibold text-sm mt-2">${team2}</div>
       </div>
 
     </div>
@@ -206,12 +216,12 @@ function createMatchCard(m){
       ⏳ ${countdown}
     </div>
 
-    <!-- Button -->
+    <!-- BUTTON LOGIC -->
     ${
-      isLive
-      ? `<a href="/match/${team1.toLowerCase().replace(/ /g,'-')}-vs-${team2.toLowerCase().replace(/ /g,'-')}/"
+      isClickable
+      ? `<a href="${matchURL}"
            class="live-glow block mt-5 text-center py-3 rounded-xl font-black bg-gradient-to-r from-red-600 to-pink-500">
-           🔴 Watch Live
+           ▶ Watch Live
          </a>`
       : `<div class="mt-5 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">
            Upcoming Match
