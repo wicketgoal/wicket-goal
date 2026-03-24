@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- Open Graph / Facebook -->
+<meta property="og:title" content="T20 World Cup Live Matches – Wicket Goal">
+<meta property="og:description" content="Watch T20 World Cup live matches with IST schedule, teams, venues and instant Watch Now links. Free cricket streaming on Wicket Goal.">
+<meta property="og:image" content="https://dailylivescores.com/wp-content/uploads/2026/01/LIVE-STREAMING-1024x439.png">
+<meta property="og:url" content="https://wicket-goal.pages.dev/t20-world-cup">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Wicket Goal">
+  
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+<title>T20 World Cup Live Matches Today | Wicket Goal</title>
+
+
+<meta name="description" content="Watch T20 World Cup live matches with IST schedule, teams, venues and instant Watch Now links. Free cricket streaming on Wicket Goal.">
+<meta name="keywords" content="T20 World Cup live, live cricket streaming, watch cricket online free, Wicket Goal">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#050b2e">
+
+<link rel="canonical" href="https://wicket-goal.pages.dev/t20-world-cup">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body{
+  background:linear-gradient(180deg,#050b2e,#0a1c4d,#050b2e);
+}
+.glass{
+  background:linear-gradient(145deg,rgba(255,255,255,.15),rgba(255,255,255,.04));
+  backdrop-filter:blur(18px);
+}
+.live-glow{
+  animation:pulse 1.6s infinite;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(255,0,79,.45)}
+  70%{box-shadow:0 0 0 22px rgba(255,0,79,0)}
+  100%{box-shadow:0 0 0 0 rgba(255,0,79,0)}
+}
+
+  /* ADS */
+.ad-box{
+  background:#1f2937;
+  text-align:center;
+  padding:20px;
+  margin:20px 0;
+  border-radius:8px;
+  font-size:14px;
+  color:#aaa;
+}
+  
+</style>
+
+</head>
+
+<body class="text-white antialiased">
+
+<canvas id="particles" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+<header class="sticky top-0 z-20 backdrop-blur-xl bg-gradient-to-r from-[#071b4f] to-[#000428] h-14 flex items-center justify-center">
+  <div class="text-lg font-bold tracking-wide">
+    🏏 Wicket Goal – T20 World Cup
+  </div>
+</header>
+
+<div class="ad-box">  
+
+  
+  <script async="async" data-cfasync="false" src="https://brilliantconcealed.com/a5aea346f5ad084f5a2a9721d4d585fc/invoke.js"></script>
+<div id="container-a5aea346f5ad084f5a2a9721d4d585fc"></div>
+
+  
+</div>  
+
+<main class="relative z-10 max-w-7xl mx-auto px-4 py-6">
+
+  <h1 class="text-center text-2xl md:text-3xl font-extrabold tracking-tight">
+    T20 World Cup Live Matches
+  </h1>
+
+  <h2 class="text-center text-sm md:text-base text-blue-300 mt-1 mb-6">
+    Free Live Cricket Streaming • IST Schedule • Instant Watch Links
+  </h2>
+
+  <section id="matches" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    Loading live matches…
+  </section>
+
+</main>
+
+<footer class="text-center text-xs opacity-60 my-10">
+  © 2026 Wicket Goal
+</footer>
+
+<script>
+/* PARTICLES */
+const canvas=document.getElementById('particles');
+const ctx=canvas.getContext('2d');
+function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
+addEventListener('resize',resize);resize();
+const p=[];
+for(let i=0;i<40;i++)p.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:1+Math.random(),vx:.15,vy:.15,a:.25});
+(function anim(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  p.forEach(o=>{
+    o.x+=o.vx;o.y+=o.vy;
+    if(o.x>canvas.width)o.x=0;
+    if(o.y>canvas.height)o.y=0;
+    ctx.beginPath();
+    ctx.arc(o.x,o.y,o.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${o.a})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(anim);
+})();
+
+/* ICC API */
+const API="https://crictv.cricketstream745.workers.dev/?url="+encodeURIComponent(
+"https://assets-icc.sportz.io/cricket/v1/schedule?client_id=tPZJbRgIub3Vua93%2FDWtyQ%3D%3D&feed_format=json&is_deleted=false&is_live=true&is_recent=false&is_upcoming=true&lang=en&pagination=false&series_ids=13203&tour_ids=9953&timezone=0530&_="+Date.now()
+);
+
+const logo=id=>`https://assets-icc.sportz.io/static-assets/buildv3-stg/images/teams/${id}.png?v=14`;
+
+fetch(API).then(r=>r.json()).then(j=>{
+  const box=document.getElementById("matches");
+  box.innerHTML="";
+  j.data.matches.forEach(m=>{
+    box.innerHTML+=`
+    <article class="glass rounded-2xl p-5 shadow-2xl hover:scale-[1.02] transition">
+      <p class="text-xs text-blue-300">${m.series_name}</p>
+      <p class="text-xs opacity-70 mb-3">${m.match_number}</p>
+
+      <div class="flex items-center justify-between">
+        <div class="text-center w-2/5">
+          <img loading="lazy" src="${logo(m.teama_id)}" class="w-16 h-16 mx-auto">
+          <div class="font-bold mt-1 text-sm">${m.teama_short}</div>
+        </div>
+
+        <div class="text-yellow-400 font-black text-xl">VS</div>
+
+        <div class="text-center w-2/5">
+          <img loading="lazy" src="${logo(m.teamb_id)}" class="w-16 h-16 mx-auto">
+          <div class="font-bold mt-1 text-sm">${m.teamb_short}</div>
+        </div>
+      </div>
+
+      <div class="text-xs leading-6 mt-4 opacity-90">
+        📅 ${m.match_date_ist}<br>
+        ⏰ ${m.match_time_ist} IST<br>
+        📍 ${m.venue}
+      </div>
+
+      ${
+        m.live
+? `<a href="/match/${m.teama_short.toLowerCase()}-vs-${m.teamb_short.toLowerCase()}/" 
+     class="live-glow block mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-pink-600 to-orange-500 cursor-pointer">
+     ▶ Watch Live Now
+   </a>`
+
+        : `<div class="mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">⏳ Upcoming Match</div>`
+      }
+    </article>`;
+  });
+});
+
+function watchMatch(){
+  window.location.href="https://wicket-goal.pages.dev/";
+}
+</script>
+
+
+
+<script src="https://brilliantconcealed.com/84/7e/72/847e72f260203d9209f3a3358af309b0.js"></script>
+<script src="https://brilliantconcealed.com/2d/d1/e3/2dd1e348601ccd867d8d70b5d98e53b4.js"></script>  
+</body>
+</html>
+
+
+<!-- BEGIN: Powered by Supercounters.com -->
+<center><script type="text/javascript" src="//widget.supercounters.com/ssl/online_i.js"></script><script type="text/javascript">sc_online_i(1729554,"ffffff","000000");</script><!-- END: Powered by Supercounters.com -->
+
+
+
+
+
+
+
+
+
