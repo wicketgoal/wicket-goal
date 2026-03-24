@@ -99,79 +99,95 @@ body{
 </footer>
 
 <script>
-/* PARTICLES */
-const canvas=document.getElementById('particles');
-const ctx=canvas.getContext('2d');
-function resize(){canvas.width=innerWidth;canvas.height=innerHeight;}
-addEventListener('resize',resize);resize();
-const p=[];
-for(let i=0;i<40;i++)p.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:1+Math.random(),vx:.15,vy:.15,a:.25});
-(function anim(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  p.forEach(o=>{
-    o.x+=o.vx;o.y+=o.vy;
-    if(o.x>canvas.width)o.x=0;
-    if(o.y>canvas.height)o.y=0;
-    ctx.beginPath();
-    ctx.arc(o.x,o.y,o.r,0,Math.PI*2);
-    ctx.fillStyle=`rgba(255,255,255,${o.a})`;
-    ctx.fill();
-  });
-  requestAnimationFrame(anim);
-})();
 
-/* ICC API */
-const API="https://crictv.cricketstream745.workers.dev/?url="+encodeURIComponent(
-"https://assets-icc.sportz.io/cricket/v1/schedule?client_id=tPZJbRgIub3Vua93%2FDWtyQ%3D%3D&feed_format=json&is_deleted=false&is_live=true&is_recent=false&is_upcoming=true&lang=en&pagination=false&series_ids=13203&tour_ids=9953&timezone=0530&_="+Date.now()
-);
+/* =========================
+   COMMON FUNCTION
+========================= */
 
-const logo=id=>`https://assets-icc.sportz.io/static-assets/buildv3-stg/images/teams/${id}.png?v=14`;
+function createMatchCard(m, league){
+  
+  const team1 = m.team1 || m.teama || "TBA";
+  const team2 = m.team2 || m.teamb || "TBA";
+  const venue = m.venue || "TBA";
 
-fetch(API).then(r=>r.json()).then(j=>{
-  const box=document.getElementById("matches");
-  box.innerHTML="";
-  j.data.matches.forEach(m=>{
-    box.innerHTML+=`
-    <article class="glass rounded-2xl p-5 shadow-2xl hover:scale-[1.02] transition">
-      <p class="text-xs text-blue-300">${m.series_name}</p>
-      <p class="text-xs opacity-70 mb-3">${m.match_number}</p>
+  const start = new Date(m.start_time);
+  const date = start.toLocaleDateString();
+  const time = start.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-      <div class="flex items-center justify-between">
-        <div class="text-center w-2/5">
-          <img loading="lazy" src="${logo(m.teama_id)}" class="w-16 h-16 mx-auto">
-          <div class="font-bold mt-1 text-sm">${m.teama_short}</div>
-        </div>
+  return `
+  <article class="glass rounded-2xl p-5 shadow-2xl hover:scale-[1.02] transition">
 
-        <div class="text-yellow-400 font-black text-xl">VS</div>
+    <p class="text-xs text-blue-300">${league}</p>
 
-        <div class="text-center w-2/5">
-          <img loading="lazy" src="${logo(m.teamb_id)}" class="w-16 h-16 mx-auto">
-          <div class="font-bold mt-1 text-sm">${m.teamb_short}</div>
-        </div>
+    <div class="flex items-center justify-between mt-3">
+      
+      <div class="text-center w-2/5">
+        <div class="font-bold text-sm">${team1}</div>
       </div>
 
-      <div class="text-xs leading-6 mt-4 opacity-90">
-        📅 ${m.match_date_ist}<br>
-        ⏰ ${m.match_time_ist} IST<br>
-        📍 ${m.venue}
+      <div class="text-yellow-400 font-black text-xl">VS</div>
+
+      <div class="text-center w-2/5">
+        <div class="font-bold text-sm">${team2}</div>
       </div>
 
-      ${
-        m.live
-? `<a href="/match/${m.teama_short.toLowerCase()}-vs-${m.teamb_short.toLowerCase()}/" 
-     class="live-glow block mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-pink-600 to-orange-500 cursor-pointer">
-     ▶ Watch Live Now
-   </a>`
+    </div>
 
-        : `<div class="mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">⏳ Upcoming Match</div>`
-      }
-    </article>`;
-  });
-});
+    <div class="text-xs leading-6 mt-4 opacity-90">
+      📅 ${date}<br>
+      ⏰ ${time}<br>
+      📍 ${venue}
+    </div>
 
-function watchMatch(){
-  window.location.href="https://wicket-goal.pages.dev/";
+    <a href="/match/${team1.toLowerCase()}-vs-${team2.toLowerCase()}/"
+       class="live-glow block mt-4 text-center py-3 rounded-xl font-black bg-gradient-to-r from-pink-600 to-orange-500">
+       ▶ Watch Now
+    </a>
+
+  </article>`;
 }
+
+
+/* =========================
+   LOAD IPL + PSL
+========================= */
+
+const IPL_API = "https://ipl-api.pages.dev/api/match.json";
+const PSL_API = "https://ipl-api.pages.dev/api/psl.json";
+
+async function loadMatches(){
+  const box = document.getElementById("matches");
+  box.innerHTML = "Loading matches...";
+
+  try{
+    const [iplRes, pslRes] = await Promise.all([
+      fetch(IPL_API),
+      fetch(PSL_API)
+    ]);
+
+    const iplData = await iplRes.json();
+    const pslData = await pslRes.json();
+
+    box.innerHTML = "";
+
+    /* IPL */
+    iplData.matches.forEach(m=>{
+      box.innerHTML += createMatchCard(m, "IPL 2026");
+    });
+
+    /* PSL */
+    pslData.matches.forEach(m=>{
+      box.innerHTML += createMatchCard(m, "PSL 2026");
+    });
+
+  }catch(e){
+    box.innerHTML = "Failed to load matches.";
+    console.error(e);
+  }
+}
+
+loadMatches();
+
 </script>
 
 
