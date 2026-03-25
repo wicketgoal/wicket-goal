@@ -169,7 +169,6 @@ function getCountdown(startTime){
 ========================= */
 
 
-
 function createMatchCard(m){
 
   const team1 = m.team1;
@@ -181,15 +180,21 @@ function createMatchCard(m){
 
   const diff = start - now;
 
-/* TIME STATES (BASED ON REAL TIME) */
-const isLive = diff <= 0;
+  /* TIME STATES (BASED ON REAL TIME) */
 
-const clickableTime = new Date(start.getTime() - 15 * 60 * 1000);
-const isClickable = now >= clickableTime;
+  // ✅ Live window (recommended: 2.5 hours for T20)
+  const matchDuration = 2.5 * 60 * 60 * 1000; 
+  const isLive = diff <= 0 && diff >= -matchDuration;
 
-const isStartingSoon = diff > 0 && diff <= (5 * 60 * 1000); // 5 mins
+  // ✅ Clickable 15 mins before start UNTIL match ends
+  const clickableTime = new Date(start.getTime() - 15 * 60 * 1000);
+  const isClickable = now >= clickableTime && diff >= -matchDuration;
 
-const countdown = isLive ? "LIVE" : getCountdown(m.start_time);
+  // ✅ Starting soon (last 5 mins)
+  const isStartingSoon = diff > 0 && diff <= (5 * 60 * 1000);
+
+  // ✅ Countdown
+  const countdown = isLive ? "LIVE" : getCountdown(m.start_time);
 
   /* TIME STATES */
   const clickableTime = new Date(start.getTime() - 15 * 60 * 1000);
