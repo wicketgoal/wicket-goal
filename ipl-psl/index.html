@@ -154,16 +154,15 @@ function getCountdown(startTime){
   const h = Math.floor((diff % (1000*60*60*24)) / (1000*60*60));
   const m = Math.floor((diff % (1000*60*60)) / (1000*60));
 
-  /* CLEAN FORMATTING */
+  /* ALWAYS SHOW MINUTES */
   if(d > 0){
-    return `${d}d ${h}h`;
+    return `${d}d ${h}h ${m}m`;
   } else if(h > 0){
     return `${h}h ${m}m`;
   } else {
     return `${m}m`;
   }
 }
-
 /* =========================
    MATCH CARD
 ========================= */
