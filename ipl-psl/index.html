@@ -118,12 +118,13 @@ function getLogo(team, isLive){
 
   if(!team) return "";
 
-  let slug = team
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]/g, "");
+  // MANUAL OVERRIDE FOR SPECIFIC TEAMS
+  const manualLogos = {
+    "Hyderabad Kingsmen": "https://upload.wikimedia.org/wikipedia/en/7/71/Hyderabad_Houston_Kingsmen_logo.png",
+    "Rawalpindiz": "https://img1.hscicdn.com/image/upload/f_auto,t_ds_square_w_160,q_50/lsci/db/PICTURES/CMS/414500/414592.jpg"
+  };
 
-  const url = `https://aimages.willow.tv/teamLogos/${slug}.png`;
+  const logoURL = manualLogos[team] || `https://aimages.willow.tv/teamLogos/${team.toLowerCase().replace(/&/g,"and").replace(/[^a-z0-9]/g,"")}.png`;
 
   return `
     <div class="flex justify-center">
@@ -134,7 +135,7 @@ function getLogo(team, isLive){
         bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500
       ">
         <div class="bg-[#050b2e] rounded-full p-2">
-          <img src="${url}"
+          <img src="${logoURL}"
                loading="lazy"
                onerror="this.onerror=null;this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(team)}&background=111827&color=fff';"
                class="w-12 h-12 object-contain rounded-full">
@@ -144,7 +145,6 @@ function getLogo(team, isLive){
     </div>
   `;
 }
-
 /* =========================
    COUNTDOWN (DAYS + HOURS)
 ========================= */
