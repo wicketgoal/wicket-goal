@@ -181,10 +181,15 @@ function createMatchCard(m){
 
   const diff = start - now;
 
-  const date = start.toLocaleDateString();
-  const time = start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+/* TIME STATES (BASED ON REAL TIME) */
+const isLive = diff <= 0;
 
-  const countdown = getCountdown(m.start_time);
+const clickableTime = new Date(start.getTime() - 15 * 60 * 1000);
+const isClickable = now >= clickableTime;
+
+const isStartingSoon = diff > 0 && diff <= (5 * 60 * 1000); // 5 mins
+
+const countdown = isLive ? "LIVE" : getCountdown(m.start_time);
 
   /* TIME STATES */
   const clickableTime = new Date(start.getTime() - 15 * 60 * 1000);
