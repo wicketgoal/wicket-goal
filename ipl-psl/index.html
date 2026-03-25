@@ -161,6 +161,7 @@ function getCountdown(startTime){
 ========================= */
 
 
+
 function createMatchCard(m){
 
   const team1 = m.team1;
@@ -170,69 +171,89 @@ function createMatchCard(m){
   const start = new Date(m.start_time);
   const now = new Date();
 
+  const diff = start - now;
+
   const date = start.toLocaleDateString();
   const time = start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 
   const countdown = getCountdown(m.start_time);
 
-  /* 15 MIN LOGIC */
+  /* TIME STATES */
   const clickableTime = new Date(start.getTime() - 15 * 60 * 1000);
   const isClickable = now >= clickableTime;
 
-  /* slug for URL */
-  const slug = team1.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const isStartingSoon = diff > 0 && diff <= (5 * 60 * 1000); // 5 mins
+  const isLive = countdown === "LIVE";
 
+  /* URL */
+  const slug = team1.toLowerCase().replace(/[^a-z0-9]/g,'');
   const matchURL = `https://match-details.wicketgoal-tv.com/?match=${slug}`;
 
   return `
-  <article class="glass rounded-2xl p-5 shadow-2xl hover:scale-[1.03] transition">
+  <a href="${isClickable ? matchURL : '#'}"
+     class="block ${isClickable ? 'cursor-pointer' : 'cursor-default'}">
 
-    <!-- League Badge -->
-    <div class="flex justify-between items-center">
-      <span class="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-indigo-500 font-bold">
-        ${league}
-      </span>
+    <article class="
+      glass rounded-2xl p-5 shadow-2xl 
+      transition duration-300
+      ${isClickable ? 'hover:scale-[1.05] hover:shadow-[0_0_30px_rgba(255,0,80,0.4)]' : ''}
+    ">
 
-      ${countdown === "LIVE" ? `<span class="text-xs bg-red-600 px-2 py-1 rounded-full animate-pulse">LIVE</span>` : ""}
-    </div>
+      <!-- TOP BADGES -->
+      <div class="flex justify-between items-center">
 
-    <!-- Teams -->
-    <div class="flex items-center justify-between mt-5">
-      
-      <div class="text-center w-2/5">
-        ${getLogo(team1, countdown === "LIVE")}
-        <div class="font-semibold text-sm mt-2">${team1}</div>
+        <span class="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-indigo-500 font-bold">
+          ${league}
+        </span>
+
+        ${
+          isLive
+          ? `<span class="text-xs bg-red-600 px-2 py-1 rounded-full animate-pulse font-bold">LIVE</span>`
+          : isStartingSoon
+          ? `<span class="text-xs bg-orange-500 px-2 py-1 rounded-full font-bold animate-pulse">🔥 Starting Soon</span>`
+          : ""
+        }
+
       </div>
 
-      <div class="text-yellow-400 font-black text-xl">VS</div>
+      <!-- TEAMS -->
+      <div class="flex items-center justify-between mt-5">
+        
+        <div class="text-center w-2/5">
+          ${getLogo(team1, isLive)}
+          <div class="font-semibold text-sm mt-2">${team1}</div>
+        </div>
 
-      <div class="text-center w-2/5">
-        ${getLogo(team2, countdown === "LIVE")}
-        <div class="font-semibold text-sm mt-2">${team2}</div>
+        <div class="text-yellow-400 font-black text-xl">VS</div>
+
+        <div class="text-center w-2/5">
+          ${getLogo(team2, isLive)}
+          <div class="font-semibold text-sm mt-2">${team2}</div>
+        </div>
+
       </div>
 
-    </div>
+      <!-- INFO -->
+      <div class="text-xs leading-6 mt-5 opacity-90 text-center">
+        📅 ${date} • ⏰ ${time}<br>
+        📍 ${m.venue || "TBA"}<br>
+        ⏳ ${countdown}
+      </div>
 
-    <!-- Info -->
-    <div class="text-xs leading-6 mt-5 opacity-90 text-center">
-      📅 ${date} • ⏰ ${time}<br>
-      📍 ${m.venue || "TBA"}<br>
-      ⏳ ${countdown}
-    </div>
+      <!-- CTA -->
+      ${
+        isClickable
+        ? `<div class="live-glow mt-5 text-center py-3 rounded-xl font-black bg-gradient-to-r from-red-600 to-pink-500">
+             ▶ Watch Live Now
+           </div>`
+        : `<div class="mt-5 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">
+             Upcoming Match
+           </div>`
+      }
 
-    <!-- BUTTON LOGIC -->
-    ${
-      isClickable
-      ? `<a href="${matchURL}"
-           class="live-glow block mt-5 text-center py-3 rounded-xl font-black bg-gradient-to-r from-red-600 to-pink-500">
-           ▶ Watch Live
-         </a>`
-      : `<div class="mt-5 text-center py-3 rounded-xl font-black bg-gradient-to-r from-blue-400 to-cyan-300 text-black">
-           Upcoming Match
-         </div>`
-    }
+    </article>
 
-  </article>`;
+  </a>`;
 }
 
 /* =========================
