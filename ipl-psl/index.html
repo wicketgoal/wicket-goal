@@ -180,28 +180,17 @@ function createMatchCard(m){
 
   const diff = start - now;
 
-  /* TIME STATES (BASED ON REAL TIME) */
+  /* TIME STATES */
+  const matchDuration = 2.5 * 60 * 60 * 1000;
 
-  // ✅ Live window (recommended: 2.5 hours for T20)
-  const matchDuration = 2.5 * 60 * 60 * 1000; 
   const isLive = diff <= 0 && diff >= -matchDuration;
 
-  // ✅ Clickable 15 mins before start UNTIL match ends
   const clickableTime = new Date(start.getTime() - 15 * 60 * 1000);
   const isClickable = now >= clickableTime && diff >= -matchDuration;
 
-  // ✅ Starting soon (last 5 mins)
   const isStartingSoon = diff > 0 && diff <= (5 * 60 * 1000);
 
-  // ✅ Countdown
   const countdown = isLive ? "LIVE" : getCountdown(m.start_time);
-
-  /* TIME STATES */
-  const clickableTime = new Date(start.getTime() - 15 * 60 * 1000);
-  const isClickable = now >= clickableTime;
-
-  const isStartingSoon = diff > 0 && diff <= (5 * 60 * 1000); // 5 mins
-  const isLive = countdown === "LIVE";
 
   /* URL */
   const slug = team1.toLowerCase().replace(/[^a-z0-9]/g,'');
@@ -211,13 +200,10 @@ function createMatchCard(m){
   <a href="${isClickable ? matchURL : '#'}"
      class="block ${isClickable ? 'cursor-pointer' : 'cursor-default'}">
 
-    <article class="
-      glass rounded-2xl p-5 shadow-2xl 
-      transition duration-300
-      ${isClickable ? 'hover:scale-[1.05] hover:shadow-[0_0_30px_rgba(255,0,80,0.4)]' : ''}
-    ">
+    <article class="glass rounded-2xl p-5 shadow-2xl transition duration-300
+      ${isClickable ? 'hover:scale-[1.05] hover:shadow-[0_0_30px_rgba(255,0,80,0.4)]' : ''}">
 
-      <!-- TOP BADGES -->
+      <!-- TOP -->
       <div class="flex justify-between items-center">
 
         <span class="text-xs px-3 py-1 rounded-full bg-gradient-to-r from-purple-600 to-indigo-500 font-bold">
@@ -253,7 +239,7 @@ function createMatchCard(m){
 
       <!-- INFO -->
       <div class="text-xs leading-6 mt-5 opacity-90 text-center">
-        📅 ${date} • ⏰ ${time}<br>
+        📅 ${start.toLocaleDateString()} • ⏰ ${start.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}<br>
         📍 ${m.venue || "TBA"}<br>
         ⏳ ${countdown}
       </div>
