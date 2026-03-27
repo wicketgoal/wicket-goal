@@ -1,65 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Working Player</title>
 
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-<script src="js/hls.js?v=5"></script>
 <style>
-    body {
-        margin: 0;
-    }
+body {
+    margin: 0;
+    background: black;
+}
 
-    audio::-webkit-media-controls-timeline,
-    video::-webkit-media-controls-timeline {
-        display: none;
-    }
+video {
+    width: 100%;
+    height: 100vh;
+    outline: 2px solid red;
+}
 </style>
-<center style="background-color: black;">
-    <video width="100%" height="100%" id="video" controls autoplay></video>
-</center>
+</head>
+
+<body>
+
+<video id="video" controls autoplay muted></video>
+
 <script>
-    var video = document.getElementById('video');
-    var primarySource = 'http://103.144.89.251:8082/A.SPORTS.HD/index.m3u8?token=fe0a6866e029b4cee62b739a397d7a5e49646c94-8d3ad471a42fa92f0a4497a3db592a8f-1774626690-1774615890&remote=no_check_ip';
-    var backupSource = '';
-    var backupRequested = false;
+var video = document.getElementById('video');
 
-    function playVideo(source) {
-        video.src = source;
-        video.load();
-        video.play();
-    }
+/* 🔥 USE YOUR WORKING LINK HERE */
+var stream = "http://103.144.89.251:8082/A.SPORTS.HD/index.m3u8?token=fe0a6866e029b4cee62b739a397d7a5e49646c94-8d3ad471a42fa92f0a4497a3db592a8f-1774626690-1774615890&remote=no_check_ip";
 
-    function initializeHLS(url) {
+function startPlayer(url) {
+    if (Hls.isSupported()) {
+
         var hls = new Hls({
-            debug: false,
+            maxBufferLength: 30
         });
+
         hls.loadSource(url);
         hls.attachMedia(video);
-       hls.on(Hls.Events.MEDIA_ATTACHED, function () {
-    video.muted = true; // ensure mute
-    video.play().catch(function (error) {
-        console.warn('Autoplay failed:', error);
-    });
-});
 
-        hls.on(Hls.Events.ERROR, function(event, data) {
-            if (data.fatal && !backupRequested && backupSource) {
-                backupRequested = true;
-                initializeHLS(backupSource);
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+            video.play().catch(() => {});
+        });
+
+        hls.on(Hls.Events.ERROR, function (event, data) {
+            if (data.fatal) {
+                console.log("Reloading stream...");
+                hls.loadSource(url); // auto reload
             }
         });
-    }
 
-    if (Hls.isSupported()) {
-        initializeHLS(primarySource);
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        video.addEventListener('error', function() {
-            if (!backupRequested && backupSource) {
-                backupRequested = true;
-                playVideo(backupSource);
-            }
-        });
-        video.src = primarySource;
-        video.load();
-        video.addEventListener('canplay', function() {
-            video.play();
-        });
+        video.src = url;
+        video.play();
     }
+}
+
+startPlayer(stream);
+
+/* 🔁 AUTO REFRESH EVERY 2 MIN (IMPORTANT) */
+setInterval(() => {
+    console.log("Refreshing stream...");
+    startPlayer(stream);
+}, 120000);
+
 </script>
+
+</body>
+</html>
