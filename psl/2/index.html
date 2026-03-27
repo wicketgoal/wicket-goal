@@ -1,8 +1,125 @@
-<div style="position:relative;width:100%;height:0;padding-bottom:56.25%;">
-  <iframe 
-    src="http://103.144.89.251/player.php?stream=88"
-    style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;"
-    allowfullscreen
-    allow="autoplay; encrypted-media">
-  </iframe>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Live TV Panel</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: white;
+}
+
+/* Layout */
+.container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* Player */
+.player-section {
+  flex: 3;
+  min-width: 300px;
+  padding: 10px;
+}
+
+.player-box {
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%;
+  background: black;
+  border: 2px solid red;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.player-box iframe {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* Channel list */
+.channel-section {
+  flex: 1;
+  min-width: 200px;
+  max-height: 100vh;
+  overflow-y: auto;
+  background: #020617;
+  border-left: 2px solid #1e293b;
+}
+
+.channel {
+  padding: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #1e293b;
+  transition: 0.3s;
+}
+
+.channel:hover {
+  background: #1e293b;
+}
+
+.channel.active {
+  background: red;
+}
+
+/* Title */
+.title {
+  padding: 10px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  background: #020617;
+  border-bottom: 2px solid #1e293b;
+}
+</style>
+</head>
+
+<body>
+
+<div class="title">📺 Live TV Streaming</div>
+
+<div class="container">
+
+  <!-- PLAYER -->
+  <div class="player-section">
+    <div class="player-box">
+      <iframe id="player" 
+        src="http://103.144.89.251/player.php?stream=88"
+        allowfullscreen
+        allow="autoplay">
+      </iframe>
+    </div>
+  </div>
+
+  <!-- CHANNEL LIST -->
+  <div class="channel-section" id="channelList">
+    
+    <div class="channel active" onclick="playChannel(88, this)">A Sports HD</div>
+    <div class="channel" onclick="playChannel(89, this)">PTV Sports</div>
+    <div class="channel" onclick="playChannel(90, this)">Star Sports</div>
+    <div class="channel" onclick="playChannel(91, this)">Sony Sports</div>
+    <div class="channel" onclick="playChannel(92, this)">Sky Sports</div>
+
+  </div>
+
 </div>
+
+<script>
+function playChannel(id, el) {
+  // Change stream
+  document.getElementById("player").src = 
+    "http://103.144.89.251/player.php?stream=" + id;
+
+  // Active highlight
+  document.querySelectorAll(".channel").forEach(c => c.classList.remove("active"));
+  el.classList.add("active");
+}
+</script>
+
+</body>
+</html>
