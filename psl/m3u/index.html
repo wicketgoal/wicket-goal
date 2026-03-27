@@ -1,57 +1,79 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Shaka Player</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.3.5/shaka-player.compiled.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stream with ID</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #000;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
+<style>
+body {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  background: #000;
+  color: #fff;
+  text-align: center;
+  overflow: hidden;
+  font-family: Tahoma, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
 
-    video {
-      width: 100%;
-      max-width: 1000px;
-      height: auto;
-      outline: 2px solid red; /* your red outline */
-    }
-  </style>
+#player {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+</style>
 </head>
 
 <body>
 
-<video id="video" controls autoplay></video>
+<iframe 
+  id="player"
+  allowfullscreen
+  allow="autoplay; fullscreen"
+  sandbox="allow-scripts allow-same-origin allow-forms allow-presentation">
+</iframe>
 
 <script>
-  async function init() {
-    const video = document.getElementById('video');
-    const player = new shaka.Player(video);
+const channels = {
 
-    // Get stream URL from query (?src=)
-    const params = new URLSearchParams(window.location.search);
-    const streamUrl = params.get("src");
+  1: "https://wicket-goal.pages.dev/m3u/?src=https://vodnewv2.in-maa-1.linodeobjects.com/PSLPROMO/master.m3u8",
+  2: "https://wicket-goal.pages.dev/m3u/?src=https://webott.viatv.com.np/v0t1/ASportsHd/chunks.m3u8",
+ 3: "https://embedsports.top/embed/echo/t20-world-cup-semi-final-india-vs-england-cricket-1/1"
+ 
 
-    if (!streamUrl) {
-      alert("No stream URL provided!");
-      return;
-    }
+};
 
-    try {
-      await player.load(streamUrl);
-      console.log("Stream loaded:", streamUrl);
-    } catch (e) {
-      console.error("Error loading stream", e);
-    }
-  }
+// Get ?id=
+const urlParams = new URLSearchParams(window.location.search);
+let channel = urlParams.get('id');
 
-  init();
+// Default fallback
+const defaultChannel = "AFG";
+
+function setChannel(id) {
+  const iframe = document.getElementById('player');
+  iframe.src = channels[id] || channels[defaultChannel];
+}
+
+// Load
+setChannel(channel);
 </script>
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
