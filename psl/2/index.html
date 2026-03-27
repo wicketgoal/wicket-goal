@@ -1,142 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>Pro Live TV</title>
 
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
+<script src="js/hls.js?v=5"></script>
 <style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-}
+    body {
+        margin: 0;
+    }
 
-.container {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-/* PLAYER */
-.player {
-  flex: 3;
-  padding: 10px;
-}
-
-video {
-  width: 100%;
-  max-width: 1000px;
-  background: black;
-  border: 2px solid red;
-  border-radius: 10px;
-}
-
-/* CHANNEL LIST */
-.channels {
-  flex: 1;
-  max-height: 100vh;
-  overflow-y: auto;
-  background: #020617;
-  border-left: 2px solid #1e293b;
-}
-
-.channel {
-  padding: 12px;
-  border-bottom: 1px solid #1e293b;
-  cursor: pointer;
-}
-
-.channel:hover {
-  background: #1e293b;
-}
-
-.active {
-  background: red;
-}
-
-/* HEADER */
-.header {
-  text-align: center;
-  padding: 10px;
-  font-size: 20px;
-  font-weight: bold;
-}
+    audio::-webkit-media-controls-timeline,
+    video::-webkit-media-controls-timeline {
+        display: none;
+    }
 </style>
-</head>
-
-<body>
-
-<div class="header">📺 Pro Live Streaming</div>
-
-<div class="container">
-
-  <!-- PLAYER -->
-  <div class="player">
-    <video id="video" controls autoplay></video>
-  </div>
-
-  <!-- CHANNELS -->
-  <div class="channels" id="channelList">
-    <div class="channel active" onclick="playChannel(0, this)">A Sports HD</div>
-    <div class="channel" onclick="playChannel(1, this)">Channel 2</div>
-    <div class="channel" onclick="playChannel(2, this)">Channel 3</div>
-  </div>
-
-</div>
-
+<center style="background-color: black;">
+    <video width="100%" height="100%" id="video" controls autoplay></video>
+</center>
 <script>
-const video = document.getElementById('video');
-let hls;
+    var video = document.getElementById('video');
+    var primarySource = 'http://103.144.89.251:8082/A.SPORTS.HD/index.m3u8?token=fe0a6866e029b4cee62b739a397d7a5e49646c94-8d3ad471a42fa92f0a4497a3db592a8f-1774626690-1774615890&remote=no_check_ip';
+    var backupSource = '';
+    var backupRequested = false;
 
-/* CHANNEL LIST (PUT YOUR STREAMS HERE) */
-const channels = [
-  "http://103.144.89.251:8082/A.SPORTS.HD/tracks-v1a1/mono.m3u8?token=b55c15161849d13d10572663e9328a2a85a82548-fd8431bcafcbcf62e3a6a629d3cc41cd-1774625116-1774614316",
-  "PUT_SECOND_CHANNEL_LINK",
-  "PUT_THIRD_CHANNEL_LINK"
-];
+    function playVideo(source) {
+        video.src = source;
+        video.load();
+        video.play();
+    }
 
-/* PLAY FUNCTION */
-function playChannel(index, el) {
-
-  // destroy old player
-  if (hls) {
-    hls.destroy();
-  }
-
-  const stream = channels[index];
-
-  if (Hls.isSupported()) {
-    hls = new Hls({
-      maxBufferLength: 30
+    function initializeHLS(url) {
+        var hls = new Hls({
+            debug: false,
+        });
+        hls.loadSource(url);
+        hls.attachMedia(video);
+       hls.on(Hls.Events.MEDIA_ATTACHED, function () {
+    video.muted = true; // ensure mute
+    video.play().catch(function (error) {
+        console.warn('Autoplay failed:', error);
     });
+});
 
-    hls.loadSource(stream);
-    hls.attachMedia(video);
+        hls.on(Hls.Events.ERROR, function(event, data) {
+            if (data.fatal && !backupRequested && backupSource) {
+                backupRequested = true;
+                initializeHLS(backupSource);
+            }
+        });
+    }
 
-  } else {
-    video.src = stream;
-  }
-
-  // UI active highlight
-  document.querySelectorAll('.channel').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-}
-
-/* AUTO REFRESH STREAM EVERY 5 MIN */
-setInterval(() => {
-  if (hls) {
-    console.log("Refreshing stream...");
-    const current = video.src || channels[0];
-    hls.loadSource(current);
-  }
-}, 300000); // 5 min
-
-/* LOAD FIRST CHANNEL */
-playChannel(0, document.querySelector('.channel'));
-
+    if (Hls.isSupported()) {
+        initializeHLS(primarySource);
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.addEventListener('error', function() {
+            if (!backupRequested && backupSource) {
+                backupRequested = true;
+                playVideo(backupSource);
+            }
+        });
+        video.src = primarySource;
+        video.load();
+        video.addEventListener('canplay', function() {
+            video.play();
+        });
+    }
 </script>
-
-</body>
-</html>
