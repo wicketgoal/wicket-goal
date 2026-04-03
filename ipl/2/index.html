@@ -1,36 +1,26 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Live Stream</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Stream</title>
 
-  <!-- Video.js CSS -->
-  <link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet" />
+<link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
 
-  <!-- hls.js -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  background: black;
+  height: 100%;
+}
 
-  <!-- Video.js -->
-  <script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
-
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: black;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    .video-js {
-      width: 100% !important;
-      height: 80% !important;
-    }
-
-    .vjs-control-bar {
-      font-size: 14px;
-    }
-  </style>
+.video-js {
+  width: 100% !important;
+  height: 100% !important;
+}
+</style>
 </head>
 
 <body>
@@ -39,55 +29,38 @@
   id="video"
   class="video-js vjs-default-skin"
   controls
-  autoplay
-  muted
   playsinline
+  webkit-playsinline
+  muted
 ></video>
 
 <script>
-  const video = document.getElementById('video');
-  const streamURL = "https://ru-001.local-honduras-center.sbs/secure/api/v1/lchd-ipltata.m3u8";
+const video = document.getElementById('video');
+const streamURL = "https://ru-001.local-honduras-center.sbs/secure/api/v1/lchd-ipltata.m3u8";
 
-  // Initialize Video.js
-  const player = videojs(video, {
-    autoplay: true,
-    muted: true,
-    controls: true,
-    preload: 'auto',
-    fluid: true
+// Detect Safari / iOS
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+if (video.canPlayType('application/vnd.apple.mpegurl')) {
+  // ✅ Native HLS (BEST for iPhone)
+  video.src = streamURL;
+
+} else if (Hls.isSupported()) {
+  // ✅ Android / Chrome
+  const hls = new Hls({
+    maxBufferLength: 20,
+    lowLatencyMode: true
   });
 
-  if (Hls.isSupported()) {
-    const hls = new Hls({
-      maxBufferLength: 30,
-      maxMaxBufferLength: 60,
-      enableWorker: true,
-      lowLatencyMode: true
-    });
+  hls.loadSource(streamURL);
+  hls.attachMedia(video);
+}
 
-    hls.loadSource(streamURL);
-    hls.attachMedia(video);
+// Autoplay AFTER user interaction (required for mobile)
+document.body.addEventListener('click', () => {
+  video.play();
+}, { once: true });
 
-    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-      video.play();
-    });
-
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = streamURL;
-    video.addEventListener('loadedmetadata', function () {
-      video.play();
-    });
-  }
-
-  // Try fullscreen on load (may require user interaction on some devices)
-  player.ready(function () {
-    setTimeout(() => {
-      const promise = player.requestFullscreen();
-      if (promise !== undefined) {
-        promise.catch(() => {});
-      }
-    }, 1000);
-  });
 </script>
 
 </body>
