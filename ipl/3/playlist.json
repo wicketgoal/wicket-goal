@@ -1,0 +1,16 @@
+{
+  "star": {
+    "type": "hls",
+    "url": "https://ott-nettv-02.nettv.com.np/iptvsports/netSTARSPORTS1HD1500.stream/playlist.m3u8"
+  },
+
+  "fox": {
+    "type": "hls",
+    "url": "https://ru-001.local-honduras-center.sbs/secure/api/v1/lchd-fs501.m3u8"
+  },
+
+  "willow": {
+    "type": "iframe",
+    "url": "https://example.com/embed-player"
+  }
+}
