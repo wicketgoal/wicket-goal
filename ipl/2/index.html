@@ -1,66 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Stream</title>
+<title>Shaka Player</title>
 
-<link href="https://vjs.zencdn.net/8.5.2/video-js.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-<script src="https://vjs.zencdn.net/8.5.2/video.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/shaka-player.ui.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.11/controls.min.css">
 
 <style>
-html, body {
-  margin: 0;
-  padding: 0;
-  background: black;
-  height: 100%;
-}
-
-.video-js {
-  width: 100% !important;
-  height: 100% !important;
-}
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #000;
+  }
+  #video-container {
+    width: 100%;
+    height: 100%;
+  }
+  video {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
 </style>
 </head>
 
 <body>
 
-<video
-  id="video"
-  class="video-js vjs-default-skin"
-  controls
-  playsinline
-  webkit-playsinline
-  muted
-></video>
+<div id="video-container">
+  <video id="video" autoplay playsinline muted></video>
+</div>
 
 <script>
-const video = document.getElementById('video');
-const streamURL = "https://ru-001.local-honduras-center.sbs/secure/api/v1/lchd-ipltata.m3u8";
+async function initPlayer() {
+  shaka.polyfill.installAll();
 
-// Detect Safari / iOS
-const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  if (!shaka.Player.isBrowserSupported()) {
+    alert("Browser not supported");
+    return;
+  }
 
-if (video.canPlayType('application/vnd.apple.mpegurl')) {
-  // ✅ Native HLS (BEST for iPhone)
-  video.src = streamURL;
+  const video = document.getElementById("video");
+  const player = new shaka.Player(video);
 
-} else if (Hls.isSupported()) {
-  // ✅ Android / Chrome
-  const hls = new Hls({
-    maxBufferLength: 20,
-    lowLatencyMode: true
-  });
+  // UI Controls
+  const ui = new shaka.ui.Overlay(player, document.getElementById("video-container"), video);
 
-  hls.loadSource(streamURL);
-  hls.attachMedia(video);
+  // 🔥 Your stream
+  const url = "https://ott-nettv-02.nettv.com.np/iptvsports/netSTARSPORTS1HD1500.stream/playlist.m3u8";
+
+  try {
+    await player.load(url);
+    console.log("Stream loaded!");
+  } catch (e) {
+    console.error("Error loading stream:", e);
+  }
 }
 
-// Autoplay AFTER user interaction (required for mobile)
-document.body.addEventListener('click', () => {
-  video.play();
-}, { once: true });
-
+document.addEventListener("DOMContentLoaded", initPlayer);
 </script>
 
 </body>
