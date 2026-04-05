@@ -1,101 +1,108 @@
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer">
-    <title>Prime TV</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/shaka-player.ui.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/controls.min.css" crossorigin="anonymous">
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>RhinoArena</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
-        body { background-color: #000; margin: 0; }
-        .watermark {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 100px;
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        img { position:relative; right:130; bottom:10; margin:auto auto; max-width:20%; max-height:20%; object-fit:contain; pointer-events:none; }
-        .shaka-spinner-container { display:none; }
-        .uc { pointer-events:none; }
-        .shaka-current-time, .shaka-time-container { display: none; } /* Hide time display */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background-color: black;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      #video {
+        width: 100vw;
+        height: 100vh;
+        object-fit: contain; /* Makes sure video is fully visible without being cropped */
+        background-color: black;
+      }
+      .watermark {
+        position: fixed;
+        bottom: 100px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: white;
+        font-size: 1.2rem;
+        background: rgba(0,0,0,0.4);
+        padding: 6px 18px;
+        border-radius: 8px;
+        z-index: 1000;
+        pointer-events: none;
+        font-family: sans-serif;
+        letter-spacing: 1px;
+      }
     </style>
-</head>
-<body>
-    <div data-shaka-player-container style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-        <video autoplay muted data-shaka-player id="video" poster="" style="width:100%; height:100%"></video>
-    </div>
-    <script>
-       const mpdUrl = 'https://otte.cache.aiv-cdn.net/syd-nitro/live/dash/enc/fb6jy4pxts/out/v1/f8fa17f087564f51aa4d5c700be43ec4/cenc.mpd';
-    const kid = 'f288380ca4cef9ad3f27a92a08e9bb8b';
-    const key = '9f18d26291d9230833501f7f822f6875';
-        let player;
-        let ui;
-
-
-        function initApp() {
-            shaka.polyfill.installAll();
-
-            shaka.Player.probeSupport().then(function() {
-                const video = document.getElementById('video');
-                player = new shaka.Player(video);
-
-                // Attach the player to the window to make it easy to access in the console
-                window.player = player;
-
-                const drmConfig = {
-                    drm: {
-                        clearKeys: {
-                            [kid]: key // Set Clear Key
-                        }
-                    }
-                };
-                player.configure(drmConfig);
-
-                player.load(mpdUrl).then(function() {
-                    console.log('The video has now been loaded!');
-                }).catch(onPlayerError);
-
-                initializeUI(video);
-            }).catch(onPlayerError);
-        }
-
-        function initializeUI(video) {
-            const container = document.querySelector('[data-shaka-player-container]');
-
-            // Create UI elements with Shaka's default configuration
-            ui = new shaka.ui.Overlay(player, container, video);
-            ui.getControls(); // This loads the default controls
-
-            // Set fullscreen button visibility if needed
-            ui.getControls().setEnabled(true);
-        }
-
-        function onPlayerError(event) {
-            console.error('Player error', event);
-        }
-
-        document.addEventListener('DOMContentLoaded', initApp);
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){
+          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+      })(window, document, "clarity", "script", "rfwh20vkcj");
     </script>
-    </body>
-    <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
-    <script disable-devtool-auto src="https://yonotv-now.pages.dev/click.js"></script>
+  </head>
+  <body>
+    <video id="video" controls autoplay playsinline></video>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+      const video = document.getElementById("video");
+      
+      // Encrypted m3u8 link
+      const encryptedSrc = "==AO1NTbuM3auVHaj9SbhVmc0NnLwATNxgVRMBVROl0QSVFUJRlTBtEdl52LtFWZyR3clZXasZHdwl2Lw5mLt92YuYHd0VmbuIDMtYHd0VmbtQHdv9yL6MHc0RHa";
+      
+      // Decrypt function
+      function decryptLink(encrypted) {
+        try {
+          // Reverse the string and then decode from Base64
+          return atob(encrypted.split('').reverse().join(''));
+        } catch (e) {
+          console.error("Failed to decrypt link:", e);
+          return "";
+        }
+      }
+      
+      // Decrypt the link
+      const videoSrc = decryptLink(encryptedSrc);
+
+      function playVideo() {
+        if (!videoSrc) {
+          console.error("Invalid video source");
+          return;
+        }
+        
+        if (Hls.isSupported()) {
+          const hls = new Hls();
+          hls.loadSource(videoSrc);
+          hls.attachMedia(video);
+          hls.on(Hls.Events.MANIFEST_PARSED, function () {
+            video.play();
+          });
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+          video.src = videoSrc;
+          video.addEventListener("loadedmetadata", function () {
+            video.play();
+          });
+        }
+      }
+
+      playVideo();
+
+      // Attempt fullscreen on user interaction
+      document.addEventListener(
+        "click",
+        () => {
+          if (video.requestFullscreen) video.requestFullscreen();
+          else if (video.webkitRequestFullscreen)
+            video.webkitRequestFullscreen();
+          else if (video.msRequestFullscreen) video.msRequestFullscreen();
+        },
+        { once: true }
+      );
+    </script>
+  </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
