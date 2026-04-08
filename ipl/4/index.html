@@ -1,108 +1,42 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <title>Player</title>
+    <title>Live Player</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <style>
-      html,
-      body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background-color: black;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      #video {
-        width: 100vw;
-        height: 100vh;
-        object-fit: contain; /* Makes sure video is fully visible without being cropped */
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript"></script>
+
+    <style type="text/css" media="screen" charset="utf-8">
+      #live-player {
+        position: fixed !important;
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
         background-color: black;
       }
-      .watermark {
-        position: fixed;
-        bottom: 100px;
-        left: 50%;
-        transform: translateX(-50%);
-        color: white;
-        font-size: 1.2rem;
-        background: rgba(0,0,0,0.4);
-        padding: 6px 18px;
-        border-radius: 8px;
-        z-index: 1000;
-        pointer-events: none;
-        font-family: sans-serif;
-        letter-spacing: 1px;
+      .dvr-player-wrapper {
+        background-color: black;
       }
     </style>
-    <script type="text/javascript">
-      (function(c,l,a,r,i,t,y){
-          c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-          t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-          y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-      })(window, document, "clarity", "script", "rfwh20vkcj");
-    </script>
-  </head>
+  <link href="/flu/player/main.73e63776af61fcbe285e.css" rel="stylesheet"><script type="text/javascript" src="/flu/player/core-js.73e63776af61fcbe285e.js"></script><script type="text/javascript" src="/flu/player/sentry.73e63776af61fcbe285e.js"></script><script type="text/javascript" src="/flu/player/panzoom.73e63776af61fcbe285e.js"></script><script type="text/javascript" src="/flu/player/clappr.73e63776af61fcbe285e.js"></script><script type="text/javascript" src="/flu/player/flussonic.73e63776af61fcbe285e.js"></script><script type="text/javascript" src="/flu/player/shaka-player.73e63776af61fcbe285e.js"></script><script type="text/javascript" src="/flu/player/main.73e63776af61fcbe285e.js"></script></head>
   <body>
-    <video id="video" controls autoplay playsinline></video>
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-    <script>
-      const video = document.getElementById("video");
-      
-      // Encrypted m3u8 link
-      const encryptedSrc = "==AO1NTbuM3auVHaj9SbhVmc0NnLwATNxQESyMFVS9EUTJVQUNFdl52LtFWZyR3clZXasZHdwl2Lw5mLt92YuYHd0VmbuIDMtYHd0VmbtQHdv9yL6MHc0RHa";
-      
-      // Decrypt function
-      function decryptLink(encrypted) {
-        try {
-          // Reverse the string and then decode from Base64
-          return atob(encrypted.split('').reverse().join(''));
-        } catch (e) {
-          console.error("Failed to decrypt link:", e);
-          return "";
+    <div id="live-player"></div>
+
+    <script type="text/javascript">
+      window.onload = function() {
+        var options = {
+          parentId: '#live-player',
+          width: '100%',
+          height: '100%',
         }
+        var config = {"streamName":"Sony-Ten-2","hasPreview":false,"authTokenName":"token","thumbnails_enabled":false,"type":"live","dvr_info":null,"protocols":{"hls":true,"dash":true,"webrtc":true,"mse":true,"mss":true}};
+        var params = LivePlayer.parseUrl(window.location.href, options, {"streamName":"Sony-Ten-2","hasPreview":false,"authTokenName":"token","thumbnails_enabled":false,"type":"live","dvr_info":null,"protocols":{"hls":true,"dash":true,"webrtc":true,"mse":true,"mss":true}});
+        window.LivePlayer = new LivePlayer(params);
+        document.getElementsByTagName('title')[0].innerHTML = config.streamName;
       }
-      
-      // Decrypt the link
-      const videoSrc = decryptLink(encryptedSrc);
-
-      function playVideo() {
-        if (!videoSrc) {
-          console.error("Invalid video source");
-          return;
-        }
-        
-        if (Hls.isSupported()) {
-          const hls = new Hls();
-          hls.loadSource(videoSrc);
-          hls.attachMedia(video);
-          hls.on(Hls.Events.MANIFEST_PARSED, function () {
-            video.play();
-          });
-        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-          video.src = videoSrc;
-          video.addEventListener("loadedmetadata", function () {
-            video.play();
-          });
-        }
-      }
-
-      playVideo();
-
-      // Attempt fullscreen on user interaction
-      document.addEventListener(
-        "click",
-        () => {
-          if (video.requestFullscreen) video.requestFullscreen();
-          else if (video.webkitRequestFullscreen)
-            video.webkitRequestFullscreen();
-          else if (video.msRequestFullscreen) video.msRequestFullscreen();
-        },
-        { once: true }
-      );
     </script>
   </body>
 </html>
