@@ -9,6 +9,12 @@
     "url": "https://newcdn.tamils.click/live/tracks-v1a1/mono.m3u8"
   },
 
+  "jio": {
+    "type": "hls",
+    "url": "  https://allrounder-live4.pages.dev/master.m3u8"
+  },
+
+
   "willow": {
     "type": "iframe",
     "url": "https://player3.spirituallifewell.com/embed/639305398530cf2344470acffe884463?rel=0&modestbranding=1"
