@@ -1,98 +1,64 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<title>WicketGoal TV Player</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<meta name="referrer" content="no-referrer">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-<link rel="icon" href="https://wicketgoal-tv.com/favicon.ico">
-
-<style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        background: #000;
-        overflow: hidden;
-    }
-
-    #video {
-        width: 100%;
-        height: 100%;
-        background: #000;
-    }
-
-    #watermark {
-        position: fixed;
-        bottom: 20px;
-        width: 100%;
-        text-align: center;
-        color: #fff;
-        font-size: 18px;
-        z-index: 9999;
-        opacity: 0.8;
-    }
-</style>
-</head>
-<body>
-
-<video id="video" controls autoplay></video>
-<div id="watermark"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <script>
-    // Get stream URL from ?src=
-    function getParam(name) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(name);
-    }
+const streamUrl = new URLSearchParams(window.location.search).get("src");
 
-    const streamUrl = getParam("src");
+if (!streamUrl) {
+    document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20%;'>No Stream Provided</h2>";
+    throw new Error("Missing src parameter");
+}
 
-    if (!streamUrl) {
-        document.body.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20%;'>No Stream Provided</h2>";
-        throw new Error("Missing src parameter");
-    }
+const video = document.getElementById("video");
 
-    const video = document.getElementById("video");
+if (Hls.isSupported()) {
+    const hls = new Hls({
+        // 🔥 safer config
+        lowLatencyMode: false, // ❌ disable (important)
+        maxBufferLength: 30,   // ✅ increase buffer
+        maxMaxBufferLength: 60,
+        liveSyncDuration: 10,
+        liveMaxLatencyDuration: 20,
 
-    if (Hls.isSupported()) {
-        const hls = new Hls({
-            lowLatencyMode: true,
-            maxBufferLength: 10,
-            liveSyncDuration: 3,
-            liveMaxLatencyDuration: 5,
-            backBufferLength: 0,
-            enableWorker: true,
-            maxBufferHole: 0.5,
-        });
+        backBufferLength: 30,  // ✅ keep some buffer
+        maxBufferHole: 1,
 
-        hls.loadSource(streamUrl);
-        hls.attachMedia(video);
+        enableWorker: true,
+    });
 
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play().catch(() => console.log("Autoplay prevented"));
-        });
+    hls.loadSource(streamUrl);
+    hls.attachMedia(video);
 
-        hls.on(Hls.Events.ERROR, function(event, data) {
-            console.log("Stream error:", data);
-            if (data.fatal) {
-                console.log("Reloading stream...");
-                hls.destroy();
-                setTimeout(() => location.reload(), 2000);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch(() => console.log("Autoplay blocked"));
+    });
+
+    // 🔥 SMART ERROR HANDLING (NO RELOAD LOOP)
+    hls.on(Hls.Events.ERROR, function (event, data) {
+        console.log("HLS error:", data);
+
+        if (data.fatal) {
+            switch (data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                    console.log("Trying to recover network...");
+                    hls.startLoad();
+                    break;
+
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                    console.log("Trying to recover media...");
+                    hls.recoverMediaError();
+                    break;
+
+                default:
+                    console.log("Destroying player...");
+                    hls.destroy();
+                    setTimeout(() => location.reload(), 5000);
+                    break;
             }
-        });
+        }
+    });
 
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        // Fallback for Safari
-        video.src = streamUrl;
-        video.addEventListener('loadedmetadata', () => video.play());
-    }
+} else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = streamUrl;
+    video.addEventListener('loadedmetadata', () => {
+        video.play();
+    });
+}
 </script>
-
-</body>
-</html>
