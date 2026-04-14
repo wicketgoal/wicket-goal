@@ -19,6 +19,11 @@
     "url": "https://go.webcric.com/hindi.htm"
   },
 
+  "jio2": {
+    "type": "iframe",
+    "url": "https://wapgoo.pages.dev/?id=Star%20Sports%201%20HD"
+  },
+
 
   "willow": {
     "type": "iframe",
