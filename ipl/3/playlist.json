@@ -10,12 +10,12 @@
   },
 
   "jio": {
-    "type": "hls",
+    "type": "iframe",
     "url": "https://go.webcric.com/frame2.htm"
   },
 
   "hindi": {
-    "type": "hls",
+    "type": "iframe",
     "url": "https://go.webcric.com/hindi.htm"
   },
 
