@@ -14,6 +14,11 @@
     "url": "https://go.webcric.com/frame2.htm"
   },
 
+"jio": {
+    "type": "iframe",
+    "url": "https://cdn.damitv.live/ppv-extract/play?url=https%3A%2F%2Fpooembed.eu%2Fembed%2Fipl%2F2026-04-26%2Fcsk-gt"
+  },
+
    "kick": {
     "type": "iframe",
     "url": "https://yosintv100.pages.dev/shaka?id=pc1"
