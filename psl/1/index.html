@@ -1,102 +1,159 @@
-
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer">
-    <title>Prime TV</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/shaka-player.ui.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/controls.min.css" crossorigin="anonymous">
-    <style>
-        body { background-color: #000; margin: 0; }
-        .watermark {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 100px;
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        img { position:relative; right:130; bottom:10; margin:auto auto; max-width:20%; max-height:20%; object-fit:contain; pointer-events:none; }
-        .shaka-spinner-container { display:none; }
-        .uc { pointer-events:none; }
-        .shaka-current-time, .shaka-time-container { display: none; } /* Hide time display */
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>JW Player Stream</title>
+
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    #player {
+      width: 100%;
+      height: 100vh;
+      background: #000;
+    }
+
+    #status {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      z-index: 999;
+    }
+
+    @media (max-width: 768px) {
+      #player {
+        height: 100vh;
+      }
+    }
+  </style>
+
+  <!-- JW Player -->
+  <script src="https://cdn.jwplayer.com/libraries/IDzF9Zmk.js"></script>
 </head>
+
 <body>
-    <div data-shaka-player-container style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-        <video autoplay muted data-shaka-player id="video" poster="" style="width:100%; height:100%"></video>
-    </div>
-    <script>
-       const mpdUrl = 'https://otte.cache.aiv-cdn.net/syd-nitro/live/dash/enc/tll6uwepxa/out/v1/a7f67cbb33df46539312956427343886/cenc.mpd';
-    const kid = '290e09c837da78d5cd961978d390515c';
-    const key = 'b748836c71e6a4ca68ef5b5652db6247';
-        let player;
-        let ui;
 
+<div id="status">Loading stream...</div>
+<div id="player"></div>
 
-        function initApp() {
-            shaka.polyfill.installAll();
+<script>
+(function () {
 
-            shaka.Player.probeSupport().then(function() {
-                const video = document.getElementById('video');
-                player = new shaka.Player(video);
+  // =========================
+  // CONFIG
+  // =========================
 
-                // Attach the player to the window to make it easy to access in the console
-                window.player = player;
+  // Fallback stream for Indian IPs
+  const FALLBACK_STREAM =
+    "https://embed-cloudfront.wistia.com/deliveries/8088191e65c591a9192f0f8a4266b1386a7b2381.m3u8";
 
-                const drmConfig = {
-                    drm: {
-                        clearKeys: {
-                            [kid]: key // Set Clear Key
-                        }
-                    }
-                };
-                player.configure(drmConfig);
+  // Read stream parameter from URL
+  // Example:
+  // player.html?stream=https://example.com/live.m3u8
+  const params = new URLSearchParams(window.location.search);
+  const streamParam = params.get("stream");
 
-                player.load(mpdUrl).then(function() {
-                    console.log('The video has now been loaded!');
-                }).catch(onPlayerError);
+  // Proxy URL
+  const PROXY_BASE = "live222.php?url=";
 
-                initializeUI(video);
-            }).catch(onPlayerError);
+  // Final stream URL
+  let REAL_STREAM = "";
+
+  if (streamParam) {
+    REAL_STREAM = PROXY_BASE + encodeURIComponent(streamParam);
+  }
+
+  const statusBox = document.getElementById("status");
+
+  // =========================
+  // LOAD PLAYER
+  // =========================
+
+  function loadPlayer(streamUrl) {
+
+    jwplayer("player").setup({
+      file: streamUrl,
+      autostart: true,
+      mute: false,
+      width: "100%",
+      height: "100%",
+      stretching: "uniform",
+      controls: true,
+      primary: "html5",
+      hlshtml: true
+    });
+
+    // Quality list
+    jwplayer("player").on("levels", function(event) {
+      console.log("Available qualities:", event.levels);
+    });
+
+    // Error handling
+    jwplayer("player").on("error", function(err) {
+      console.error("Player Error:", err);
+      statusBox.innerText = "Stream failed to load.";
+    });
+  }
+
+  // =========================
+  // GEO CHECK
+  // =========================
+
+  function detectCountryAndPlay() {
+
+    fetch("https://ipapi.co/json/")
+      .then(res => res.json())
+      .then(data => {
+
+        const country = data.country_code;
+
+        console.log("Detected country:", country);
+
+        // India → fallback stream
+        if (country === "IN") {
+
+          statusBox.innerText =
+            "India detected • Playing fallback stream";
+
+          loadPlayer(FALLBACK_STREAM);
+
+        } else {
+
+          statusBox.innerText =
+            "Playing live stream";
+
+          loadPlayer(REAL_STREAM);
         }
 
-        function initializeUI(video) {
-            const container = document.querySelector('[data-shaka-player-container]');
+      })
+      .catch(err => {
 
-            // Create UI elements with Shaka's default configuration
-            ui = new shaka.ui.Overlay(player, container, video);
-            ui.getControls(); // This loads the default controls
+        console.warn("Geo detection failed:", err);
 
-            // Set fullscreen button visibility if needed
-            ui.getControls().setEnabled(true);
-        }
+        statusBox.innerText =
+          "Geo detection failed • Playing stream";
 
-        function onPlayerError(event) {
-            console.error('Player error', event);
-        }
+        loadPlayer(REAL_STREAM);
+      });
+  }
 
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
-    </body>
-    <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
-    <script disable-devtool-auto src="https://yonotv-now.pages.dev/click.js"></script>
+  // Start
+  detectCountryAndPlay();
+
+})();
+</script>
+
+</body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
