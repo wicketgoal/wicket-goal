@@ -1,4 +1,3 @@
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,56 +19,87 @@
         img { position:relative; right:130; bottom:10; margin:auto auto; max-width:20%; max-height:20%; object-fit:contain; pointer-events:none; }
         .shaka-spinner-container { display:none; }
         .uc { pointer-events:none; }
-        .shaka-current-time, .shaka-time-container { display: none; } /* Hide time display */
+        .shaka-current-time, .shaka-time-container { display: none; }
     </style>
 </head>
 <body>
     <div data-shaka-player-container style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-        <video autoplay muted data-shaka-player id="video" poster="" style="width:100%; height:100%"></video>
+        <video autoplay muted playsinline data-shaka-player id="video" poster="" style="width:100%; height:100%"></video>
     </div>
     <script>
-       const mpdUrl = 'https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd';
-    const kid = '549ab7cd35a64bb6bb479ecead04d69d';
-    const key = '829799ed534d11fcadeb4b192467e050';
+        const mpdUrl = 'https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd';
+        const kid = '549ab7cd35a64bb6bb479ecead04d69d';
+        const key = '829799ed534d11fcadeb4b192467e050';
+
         let player;
         let ui;
 
-
         function initApp() {
             shaka.polyfill.installAll();
-
             shaka.Player.probeSupport().then(function() {
                 const video = document.getElementById('video');
                 player = new shaka.Player(video);
-
-                // Attach the player to the window to make it easy to access in the console
                 window.player = player;
 
-                const drmConfig = {
+                player.configure({
                     drm: {
                         clearKeys: {
-                            [kid]: key // Set Clear Key
+                            [kid]: key
+                        }
+                    },
+                    streaming: {
+                        bufferingGoal: 10,           // reduced from default 30s
+                        rebufferingGoal: 1,           // start playing after just 1s buffered
+                        bufferBehind: 30,
+                        retryParameters: {
+                            maxAttempts: 4,
+                            baseDelay: 100,           // faster retry
+                            backoffFactor: 1.5,
+                            fuzzFactor: 0.5
+                        }
+                    },
+                    abr: {
+                        enabled: true,
+                        defaultBandwidthEstimate: 5000000, // assume 5Mbps to pick higher quality faster
+                        switchInterval: 1,                 // allow quality switches every 1s
+                        bandwidthUpgradeTarget: 0.85,
+                        bandwidthDowngradeTarget: 0.95
+                    },
+                    manifest: {
+                        retryParameters: {
+                            maxAttempts: 4,
+                            baseDelay: 100,
+                            backoffFactor: 1.5,
+                            fuzzFactor: 0.5
                         }
                     }
-                };
-                player.configure(drmConfig);
+                });
 
                 player.load(mpdUrl).then(function() {
                     console.log('The video has now been loaded!');
+                    autoPlay(video);
                 }).catch(onPlayerError);
 
                 initializeUI(video);
             }).catch(onPlayerError);
         }
 
+        function autoPlay(video) {
+            const playPromise = video.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(function(error) {
+                    // Autoplay blocked by browser — mute and retry
+                    console.warn('Autoplay blocked, retrying muted:', error);
+                    video.muted = true;
+                    video.play().catch(onPlayerError);
+                });
+            }
+        }
+
         function initializeUI(video) {
             const container = document.querySelector('[data-shaka-player-container]');
-
-            // Create UI elements with Shaka's default configuration
             ui = new shaka.ui.Overlay(player, container, video);
-            ui.getControls(); // This loads the default controls
-
-            // Set fullscreen button visibility if needed
+            ui.getControls();
             ui.getControls().setEnabled(true);
         }
 
@@ -79,11 +109,7 @@
 
         document.addEventListener('DOMContentLoaded', initApp);
     </script>
-    </body>
-    <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
-    <script disable-devtool-auto src="https://yonotv-now.pages.dev/click.js"></script>
+</body>
+<script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
+<script disable-devtool-auto src="https://yonotv-now.pages.dev/click.js"></script>
 </html>
-
-
-
-
