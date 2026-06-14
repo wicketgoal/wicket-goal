@@ -1,88 +1,140 @@
 
+<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="referrer" content="no-referrer">
-    <title>Prime TV</title>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/shaka-player.ui.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.7.1/controls.min.css" crossorigin="anonymous">
-    <style>
-        body { background-color: #000; margin: 0; }
-        .watermark {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            width: 100px;
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        img { position:relative; right:130; bottom:10; margin:auto auto; max-width:20%; max-height:20%; object-fit:contain; pointer-events:none; }
-        .shaka-spinner-container { display:none; }
-        .uc { pointer-events:none; }
-        .shaka-current-time, .shaka-time-container { display: none; } /* Hide time display */
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>Football </title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/controls.css" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/shaka-player.ui.js" crossorigin="anonymous"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+      font-family: sans-serif
+    }
+    .video-container, #player-wrap {
+      position: absolute;
+      inset: 0;
+      background: #000
+    }
+    #video {
+      width: 100%;
+      height: 100%
+    }
+    .shaka-spinner-container, .shaka-buffering-spinner, .shaka-spinner {
+      display: none !important
+    }
+    #status {
+      position: fixed;
+      left: 12px;
+      bottom: 12px;
+      z-index: 5;
+      color: rgba(255, 255, 255, .9);
+      background: rgba(0, 0, 0, .55);
+      border: 1px solid rgba(255, 255, 255, .2);
+      border-radius: 8px;
+      padding: 6px 10px;
+      font-size: 12px;
+      max-width: 88vw
+    }
+    #status:empty {
+      display: none
+    }
+    .hidden {
+      display: none !important
+    }
+  </style>
 </head>
 <body>
-    <div data-shaka-player-container style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;">
-        <video autoplay muted data-shaka-player id="video" poster="" style="width:100%; height:100%"></video>
+
+  <div class="video-container">
+    <div id="player-wrap" data-shaka-player-container>
+      <video autoplay muted playsinline data-shaka-player id="video"></video>
     </div>
-    <script>
-       const mpdUrl = 'https://a96aivottlinear-a.akamaihd.net/OTTB/iad-nitro/enc/gw0wf3rp71/out/v1/21f066e10b854c9fa0c99c9c5d881836/cenc.mpd';
-    const kid = 'baddc3119d7cab50853adf9d2299d961';
-    const key = 'adfcc1f4fbc3bcbe56a8fc0c31921922';
-        let player;
-        let ui;
+  </div>
 
+  <div id="status"></div>
 
-        function initApp() {
-            shaka.polyfill.installAll();
+  <script>
+    function showStatus(text) {
+      var s = document.getElementById('status');
+      if (s) s.textContent = text;
+    }
 
-            shaka.Player.probeSupport().then(function() {
-                const video = document.getElementById('video');
-                player = new shaka.Player(video);
+    function onPlayerError(error) {
+      var code = error && error.code ? error.code : 'UNKNOWN';
+      console.error('Shaka error', error);
+      showStatus('Stream failed (' + code + ')');
+    }
 
-                // Attach the player to the window to make it easy to access in the console
-                window.player = player;
+    async function initPlayer() {
+      if (!window.shaka || !shaka.Player || !shaka.Player.isBrowserSupported()) {
+        showStatus('Browser not supported');
+        return;
+      }
 
-                const drmConfig = {
-                    drm: {
-                        clearKeys: {
-                            [kid]: key // Set Clear Key
-                        }
-                    }
-                };
-                player.configure(drmConfig);
+      shaka.polyfill.installAll();
 
-                player.load(mpdUrl).then(function() {
-                    console.log('The video has now been loaded!');
-                }).catch(onPlayerError);
+      var video = document.getElementById('video');
+      if (!video || !video.ui) {
+        setTimeout(initPlayer, 80);
+        return;
+      }
 
-                initializeUI(video);
-            }).catch(onPlayerError);
-        }
+      var ui = video.ui;
+      var controls = ui.getControls();
+      var player = controls.getPlayer();
 
-        function initializeUI(video) {
-            const container = document.querySelector('[data-shaka-player-container]');
+      player.addEventListener('error', function(ev) { onPlayerError(ev.detail); });
+      controls.addEventListener('error', function(ev) { onPlayerError(ev.detail); });
 
-            // Create UI elements with Shaka's default configuration
-            ui = new shaka.ui.Overlay(player, container, video);
-            ui.getControls(); // This loads the default controls
+      ui.configure({
+        controlPanelElements: [
+          "play_pause",
+          "mute",
+          "volume",
+          "spacer",
+          "time_and_duration",
+          "quality",
+          "fullscreen",
+          "overflow_menu"
+        ]
+      });
 
-            // Set fullscreen button visibility if needed
-            ui.getControls().setEnabled(true);
-        }
+      player.configure({
+    drm:{ clearKeys:{"549ab7cd35a64bb6bb479ecead04d69d":"829799ed534d11fcadeb4b192467e050"} },
+        streaming: { bufferingGoal: 20, rebufferingGoal: 2, bufferBehind: 20 }
+      });
 
-        function onPlayerError(event) {
-            console.error('Player error', event);
-        }
+      try {
+    await player.load("https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/ch299/default/index.mpd");
+showStatus('');
+        video.muted = false;
+        video.play().catch(function() {});
+      } catch (e) {
+        onPlayerError(e);
+      }
+    }
 
-        document.addEventListener('DOMContentLoaded', initApp);
-    </script>
-    </body>
-    <script disable-devtool-auto src="https://cdn.jsdelivr.net/npm/disable-devtool@latest"></script>
-    <script disable-devtool-auto src="https://yonotv-now.pages.dev/click.js"></script>
+    function initFailed() {
+      showStatus('Unable to load Shaka UI');
+    }
+
+    document.addEventListener('shaka-ui-loaded', initPlayer);
+    document.addEventListener('shaka-ui-load-failed', initFailed);
+
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').catch(function() {});
+    }
+  </script>
+</body>
 </html>
-
-
-
