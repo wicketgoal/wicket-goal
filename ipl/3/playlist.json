@@ -4,10 +4,6 @@
     "url": "https://ott-nettv-02.nettv.com.np/iptvsports/netSTARSPORTS1HD1500.stream/playlist.m3u8"
   },
 
-  "fox": {
-    "type": "hls",
-    "url": "src=""
-  },
 
   "jio": {
     "type": "iframe",
