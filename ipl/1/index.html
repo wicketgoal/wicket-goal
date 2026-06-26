@@ -84,91 +84,80 @@ body{
 
 <div id="status"></div>
 
-<script>
-function showStatus(message){
-    document.getElementById("status").textContent = message;
-}
-
-function onPlayerError(error){
-    console.error(error);
-    showStatus("Playback failed.");
-}
-
-async function initPlayer(){
-
-    if(!window.shaka || !shaka.Player.isBrowserSupported()){
-        showStatus("Browser not supported.");
-        return;
+  <script>
+    function showStatus(text) {
+      var s = document.getElementById('status');
+      if (s) s.textContent = text;
     }
 
-    shaka.polyfill.installAll();
-
-    const video = document.getElementById("video");
-
-    if(!video.ui){
-        setTimeout(initPlayer,100);
-        return;
+    function onPlayerError(error) {
+      var code = error && error.code ? error.code : 'UNKNOWN';
+      console.error('Shaka error', error);
+      showStatus('Stream failed (' + code + ')');
     }
 
-    const ui = video.ui;
-    const controls = ui.getControls();
-    const player = controls.getPlayer();
+    async function initPlayer() {
+      if (!window.shaka || !shaka.Player || !shaka.Player.isBrowserSupported()) {
+        showStatus('Browser not supported');
+        return;
+      }
 
-    player.addEventListener("error",(e)=>onPlayerError(e.detail));
-    controls.addEventListener("error",(e)=>onPlayerError(e.detail));
+      shaka.polyfill.installAll();
 
-    ui.configure({
-        controlPanelElements:[
-            "play_pause",
-            "mute",
-            "volume",
-            "spacer",
-            "time_and_duration",
-            "quality",
-            "fullscreen",
-            "overflow_menu"
+      var video = document.getElementById('video');
+      if (!video || !video.ui) {
+        setTimeout(initPlayer, 80);
+        return;
+      }
+
+      var ui = video.ui;
+      var controls = ui.getControls();
+      var player = controls.getPlayer();
+
+      player.addEventListener('error', function(ev) { onPlayerError(ev.detail); });
+      controls.addEventListener('error', function(ev) { onPlayerError(ev.detail); });
+
+      ui.configure({
+        controlPanelElements: [
+          "play_pause",
+          "mute",
+          "volume",
+          "spacer",
+          "time_and_duration",
+          "quality",
+          "fullscreen",
+          "overflow_menu"
         ]
-    });
+      });
 
-    player.configure({
-        streaming:{
-            bufferingGoal:20,
-            rebufferingGoal:2,
-            bufferBehind:20
-        }
+      player.configure({
+        drm: {
+          clearKeys: { "2c338a117d434ce4bbe3569231af90f1": "a9633d901ee8a3f4f58ac314b5c5f4fb" }
+        },
+        streaming: { bufferingGoal: 20, rebufferingGoal: 2, bufferBehind: 20 }
+      });
 
-        /*
-        Add your own authorized DRM configuration here if required.
-        */
-    });
-
-    try{
-
-        // Replace with your own authorized stream URL.
-        await player.load("YOUR_STREAM_URL_HERE");
-
-        showStatus("");
-
+      try {
+        await player.load("https://qp-pldt-live-bpk-ucd-prod.akamaized.net/bpk-tv/fifa_ppv1/default/index.mpd");
+        showStatus('');
         video.muted = false;
-
-        await video.play();
-
-    }catch(err){
-        onPlayerError(err);
+        video.play().catch(function() {});
+      } catch (e) {
+        onPlayerError(e);
+      }
     }
-}
 
-function initFailed(){
-    showStatus("Unable to load Shaka Player.");
-}
+    function initFailed() {
+      showStatus('Unable to load Shaka UI');
+    }
 
-document.addEventListener("shaka-ui-loaded",initPlayer);
-document.addEventListener("shaka-ui-load-failed",initFailed);
+    document.addEventListener('shaka-ui-loaded', initPlayer);
+    document.addEventListener('shaka-ui-load-failed', initFailed);
 
-if("wakeLock" in navigator){
-    navigator.wakeLock.request("screen").catch(()=>{});
-}
-</script>
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').catch(function() {});
+    }
+  </script>
 
 </body>
 </html>
