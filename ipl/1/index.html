@@ -1,144 +1,86 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WicketGoal TV</title>
-
+<title>Player</title>
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
-
 <style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+html, body {
+    margin: 0;
+    padding: 0;
+    background: black;
+    height: 100%;
 }
-
-html,body{
-    width:100%;
-    height:100%;
-    background:#000;
-    overflow:hidden;
-    font-family:Arial,Helvetica,sans-serif;
+video {
+    width: 100%;
+    height: 100vh;
 }
-
-#player{
-    width:100%;
-    height:100vh;
-    background:#000;
-}
-
-#overlay{
-    position:fixed;
-    inset:0;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:rgba(0,0,0,.75);
-    color:#fff;
-    font-size:24px;
-    font-weight:bold;
-    cursor:pointer;
-    z-index:99;
-    transition:.3s;
-}
-
-#error{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:#000;
-    color:#fff;
-    align-items:center;
-    justify-content:center;
-    font-size:22px;
+#overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+    font-size: 20px;
+    cursor: pointer;
 }
 </style>
-
 </head>
 <body>
 
-<video
-id="player"
-controls
-playsinline
-autoplay
-></video>
-
-<div id="overlay">
-▶ Click to Watch Live
-</div>
-
-<div id="error"></div>
+<video id="video" controls playsinline></video>
+<div id="overlay">Click to Watch Live</div>
 
 <script>
-(async function(){
+(async function () {
 
-const params=new URLSearchParams(window.location.search);
+    // Get username from URL parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const username = urlParams.get("id") || "yosintv11";
 
-const channel=params.get("id") || "yosintv11";
+    const video = document.getElementById("video");
+    const overlay = document.getElementById("overlay");
 
-const video=document.getElementById("player");
-const overlay=document.getElementById("overlay");
-const error=document.getElementById("error");
+    try {
+        const res = await fetch(`https://kick.com/api/v2/channels/${username}`);
+        const data = await res.json();
 
-try{
+        if (!data.playback_url) {
+            document.body.innerHTML = "<h1 style='color:white;text-align:center'>Stream Offline</h1>";
+            return;
+        }
 
-const response=await fetch(`https://kick.com/api/v2/channels/${channel}`);
+        const streamURL = data.playback_url;
 
-const data=await response.json();
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = streamURL;
+        } else if (Hls.isSupported()) {
+            const hls = new Hls({
+                xhrSetup: function (xhr) {
+                    xhr.withCredentials = true;
+                }
+            });
+            hls.loadSource(streamURL);
+            hls.attachMedia(video);
+        } else {
+            document.body.innerHTML = "<h1 style='color:white;text-align:center'>Browser not supported</h1>";
+        }
 
-if(!data.playback_url){
+        // Start unmuted after user click
+        overlay.addEventListener("click", function () {
+            video.muted = false;
+            video.play();
+            overlay.style.display = "none";
+        });
 
-error.style.display="flex";
-error.innerHTML="Stream is Offline";
-return;
-
-}
-
-const stream=data.playback_url;
-
-if(video.canPlayType("application/vnd.apple.mpegurl")){
-
-video.src=stream;
-
-}else if(Hls.isSupported()){
-
-const hls=new Hls();
-
-hls.loadSource(stream);
-
-hls.attachMedia(video);
-
-}else{
-
-error.style.display="flex";
-error.innerHTML="This browser does not support HLS.";
-
-return;
-
-}
-
-overlay.onclick=function(){
-
-overlay.style.display="none";
-
-video.muted=false;
-
-video.play();
-
-};
-
-}catch(e){
-
-console.log(e);
-
-error.style.display="flex";
-
-error.innerHTML="Unable to load stream.";
-
-}
-
+    } catch (e) {
+        document.body.innerHTML = "<h1 style='color:white;text-align:center'>Error loading stream</h1>";
+    }
 })();
 </script>
 
