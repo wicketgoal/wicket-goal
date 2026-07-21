@@ -3,16 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="referrer" content="no-referrer">
+<title>WicketGoal TV</title>
 
-<title>Football Live Stream</title>
-
-<link rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/controls.css"
-      crossorigin="anonymous">
-
-<script src="https://cdn.jsdelivr.net/npm/shaka-player@latest/dist/shaka-player.ui.js"
-        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
 *{
@@ -21,143 +14,133 @@
     box-sizing:border-box;
 }
 
-html,
-body{
+html,body{
     width:100%;
     height:100%;
     background:#000;
     overflow:hidden;
-    font-family:Arial,sans-serif;
+    font-family:Arial,Helvetica,sans-serif;
 }
 
-.video-container,
-#player-wrap{
-    position:absolute;
-    inset:0;
+#player{
+    width:100%;
+    height:100vh;
     background:#000;
 }
 
-#video{
-    width:100%;
-    height:100%;
-}
-
-.shaka-spinner-container,
-.shaka-buffering-spinner,
-.shaka-spinner{
-    display:none!important;
-}
-
-#status{
+#overlay{
     position:fixed;
-    left:12px;
-    bottom:12px;
-    z-index:100;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:rgba(0,0,0,.75);
     color:#fff;
-    background:rgba(0,0,0,.55);
-    border:1px solid rgba(255,255,255,.2);
-    border-radius:8px;
-    padding:6px 10px;
-    font-size:12px;
-    max-width:90vw;
+    font-size:24px;
+    font-weight:bold;
+    cursor:pointer;
+    z-index:99;
+    transition:.3s;
 }
 
-#status:empty{
+#error{
     display:none;
+    position:fixed;
+    inset:0;
+    background:#000;
+    color:#fff;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<div class="video-container">
-    <div id="player-wrap" data-shaka-player-container>
-        <video
-            id="video"
-            data-shaka-player
-            autoplay
-            playsinline
-            muted>
-        </video>
-    </div>
+<video
+id="player"
+controls
+playsinline
+autoplay
+></video>
+
+<div id="overlay">
+▶ Click to Watch Live
 </div>
 
-<div id="status"></div>
+<div id="error"></div>
 
-  <script>
-    function showStatus(text) {
-      var s = document.getElementById('status');
-      if (s) s.textContent = text;
-    }
+<script>
+(async function(){
 
-    function onPlayerError(error) {
-      var code = error && error.code ? error.code : 'UNKNOWN';
-      console.error('Shaka error', error);
-      showStatus('Stream failed (' + code + ')');
-    }
+const params=new URLSearchParams(window.location.search);
 
-    async function initPlayer() {
-      if (!window.shaka || !shaka.Player || !shaka.Player.isBrowserSupported()) {
-        showStatus('Browser not supported');
-        return;
-      }
+const channel=params.get("id") || "yosintv11";
 
-      shaka.polyfill.installAll();
+const video=document.getElementById("player");
+const overlay=document.getElementById("overlay");
+const error=document.getElementById("error");
 
-      var video = document.getElementById('video');
-      if (!video || !video.ui) {
-        setTimeout(initPlayer, 80);
-        return;
-      }
+try{
 
-      var ui = video.ui;
-      var controls = ui.getControls();
-      var player = controls.getPlayer();
+const response=await fetch(`https://kick.com/api/v2/channels/${channel}`);
 
-      player.addEventListener('error', function(ev) { onPlayerError(ev.detail); });
-      controls.addEventListener('error', function(ev) { onPlayerError(ev.detail); });
+const data=await response.json();
 
-      ui.configure({
-        controlPanelElements: [
-          "play_pause",
-          "mute",
-          "volume",
-          "spacer",
-          "time_and_duration",
-          "quality",
-          "fullscreen",
-          "overflow_menu"
-        ]
-      });
+if(!data.playback_url){
 
-      player.configure({
-        drm: {
-          clearKeys: { "f6564ec2aee819046328a0e153be574d": "ff46a8a1031eb27ef22576a077c98ab7" }
-        },
-        streaming: { bufferingGoal: 20, rebufferingGoal: 2, bufferBehind: 20 }
-      });
+error.style.display="flex";
+error.innerHTML="Stream is Offline";
+return;
 
-      try {
-        await player.load("https://otte.cache.aiv-cdn.net/bom-nitro/live/clients/enc/ajfoeddkbz/out/v1/b78800b9b2304879b15843f455836829/cenc.mpd");
-        showStatus('');
-        video.muted = false;
-        video.play().catch(function() {});
-      } catch (e) {
-        onPlayerError(e);
-      }
-    }
+}
 
-    function initFailed() {
-      showStatus('Unable to load Shaka UI');
-    }
+const stream=data.playback_url;
 
-    document.addEventListener('shaka-ui-loaded', initPlayer);
-    document.addEventListener('shaka-ui-load-failed', initFailed);
+if(video.canPlayType("application/vnd.apple.mpegurl")){
 
-    if ('wakeLock' in navigator) {
-      navigator.wakeLock.request('screen').catch(function() {});
-    }
-  </script>
+video.src=stream;
+
+}else if(Hls.isSupported()){
+
+const hls=new Hls();
+
+hls.loadSource(stream);
+
+hls.attachMedia(video);
+
+}else{
+
+error.style.display="flex";
+error.innerHTML="This browser does not support HLS.";
+
+return;
+
+}
+
+overlay.onclick=function(){
+
+overlay.style.display="none";
+
+video.muted=false;
+
+video.play();
+
+};
+
+}catch(e){
+
+console.log(e);
+
+error.style.display="flex";
+
+error.innerHTML="Unable to load stream.";
+
+}
+
+})();
+</script>
 
 </body>
 </html>
