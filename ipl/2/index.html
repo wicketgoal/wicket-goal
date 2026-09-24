@@ -111,12 +111,12 @@
       });
 
       player.configure({
-    drm:{ clearKeys:{"ce7ab3022e753307997f58afe001bac4":"72d631a66e635c60829a0fe7705516c1"} },
+    drm:{ clearKeys:{"65a3c62b676acff463b432c3d09ee266":"5436e81a463d838a391634f9552140f2"} },
         streaming: { bufferingGoal: 20, rebufferingGoal: 2, bufferBehind: 20 }
       });
 
       try {
-    await player.load("https://live-oneapp-prd-news.akamaized.net/Content/CMAF_OL2-CTR-4s-v2/Live/channel(kvea)/master.mpd");
+    await player.load("https://a96aivottlinear-a.akamaihd.net/OTTB/pdx-nitro/live/clients/dash/enc/uwxerw2eey/out/v1/14e8580d2e304df391b94c8eb68553a9/cenc.mpd");
 showStatus('');
         video.muted = false;
         video.play().catch(function() {});
