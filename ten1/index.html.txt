@@ -45,7 +45,7 @@
 
   <div class="player-container">
     <iframe
-      src="https://suniliv.pages.dev/ptest1?id=sony-ten-1-hd"
+      src="https://w6.sportsonliine.click/channels/hd/hd5.php"
       title="Live Video Player"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
       sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
