@@ -1,101 +1,304 @@
+```html
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+
+  <title>MPD Player</title>
+
+  <!-- Shaka Player -->
+  <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.12/dist/shaka-player.compiled.js"></script>
 
   <style>
-    html, body {
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
       margin: 0;
       padding: 0;
+      width: 100%;
+      min-height: 100%;
       background: #000;
     }
 
-    .player {
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .player-wrapper {
       width: 100%;
-      max-width: 1000px;
-      margin: 20px auto;
+      max-width: 1200px;
       background: #000;
     }
 
     video {
-      width: 100%;
       display: block;
+      width: 100%;
+      height: auto;
+      min-height: 220px;
       background: #000;
+    }
+
+    #status {
+      padding: 10px;
+      background: #111;
+      color: #aaa;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    #error {
+      display: none;
+      padding: 12px;
+      background: #180000;
+      color: #ff6b6b;
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
 
 <body>
 
-<div class="player">
-  <video id="video" controls playsinline></video>
+<div class="player-wrapper">
+
+  <video
+    id="video"
+    controls
+    playsinline
+    webkit-playsinline
+    preload="metadata">
+  </video>
+
+  <div id="status">
+    Loading stream...
+  </div>
+
+  <div id="error"></div>
+
 </div>
 
 <script>
-(function () {
 
-  const video = document.getElementById('video');
+  // =========================================================
+  // STREAM CONFIGURATION
+  // =========================================================
 
-  const stream =
-    'https://mut001.myturn1.top:8088/live/webcricn04/playlist.m3u8?vidictid=207212968921&id=114607&pk=0b637f8b6d8b0cd6a0afcdffad0fde5e9a7e0a71e2502d686ed40d85b2d3deeaa7ce6a8890fa648a7962b064f6f47b30a173d66d65d0e7efd607093662229f62';
+  const STREAM = {
+    url: "https://a96aivottlinear-a.akamaihd.net/OTTB/pdx-nitro/live/clients/dash/enc/kokgbqrt6n/out/v1/7d6a6227d1d44ce993e20e600e2bebd4/cenc.mpd",
 
-  // Safari / iPhone / iPad
-  if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    keyId: "e82afe190e1a2ecc0f3cc2f3e4de056f",
 
-    video.src = stream;
+    key: "fe561b16157b65130a9accb3f8b54e95"
+  };
 
+
+  // =========================================================
+  // ELEMENTS
+  // =========================================================
+
+  const video = document.getElementById("video");
+  const status = document.getElementById("status");
+  const errorBox = document.getElementById("error");
+
+
+  // =========================================================
+  // STATUS
+  // =========================================================
+
+  function setStatus(message) {
+    status.textContent = message;
   }
 
-  // Chrome / Edge / Firefox / Android
-  else if (Hls.isSupported()) {
 
-    const hls = new Hls({
-      enableWorker: true
-    });
+  // =========================================================
+  // ERROR DISPLAY
+  // =========================================================
 
-    hls.loadSource(stream);
-    hls.attachMedia(video);
+  function showError(message) {
 
-    hls.on(Hls.Events.MANIFEST_PARSED, function () {
-      console.log('HLS loaded successfully');
-    });
+    console.error(message);
 
-    hls.on(Hls.Events.ERROR, function (event, data) {
+    errorBox.style.display = "block";
+    errorBox.textContent = message;
 
-      console.log('HLS Error:', data);
+    setStatus("Playback failed");
+  }
 
-      if (data.fatal) {
-        switch (data.type) {
 
-          case Hls.ErrorTypes.NETWORK_ERROR:
-            console.log('Network error - retrying...');
-            hls.startLoad();
-            break;
+  // =========================================================
+  // SHAKA ERROR HANDLER
+  // =========================================================
 
-          case Hls.ErrorTypes.MEDIA_ERROR:
-            console.log('Media error - recovering...');
-            hls.recoverMediaError();
-            break;
+  function onError(event) {
 
-          default:
-            hls.destroy();
-            break;
-        }
+    const error = event.detail;
+
+    console.error("Shaka Error:", error);
+
+    showError(
+      "Playback error\n\n" +
+      "Code: " + error.code + "\n" +
+      "Category: " + error.category + "\n" +
+      "Message: " + (error.message || "Unknown error")
+    );
+  }
+
+
+  // =========================================================
+  // INITIALIZE PLAYER
+  // =========================================================
+
+  async function initPlayer() {
+
+    try {
+
+      // Check browser compatibility
+      if (!shaka.Player.isBrowserSupported()) {
+
+        showError(
+          "This browser does not support the required " +
+          "Media Source / Encrypted Media features."
+        );
+
+        return;
       }
-    });
 
+
+      // Create Shaka player
+      const player = new shaka.Player(video);
+
+
+      // Listen for errors
+      player.addEventListener("error", onError);
+
+
+      // =====================================================
+      // CLEARKEY DRM
+      // =====================================================
+      //
+      // Shaka accepts the KID and KEY in hexadecimal.
+      //
+      // keyId = KID
+      // key   = decryption key
+      //
+      // =====================================================
+
+      player.configure({
+
+        drm: {
+
+          clearKeys: {
+
+            [STREAM.keyId]: STREAM.key
+
+          }
+
+        }
+
+      });
+
+
+      setStatus("Loading encrypted DASH stream...");
+
+
+      // =====================================================
+      // LOAD MPD
+      // =====================================================
+
+      await player.load(STREAM.url);
+
+
+      console.log("MPD loaded successfully");
+
+      setStatus("Stream loaded");
+
+
+      // =====================================================
+      // PLAYER EVENTS
+      // =====================================================
+
+      video.addEventListener("playing", function () {
+
+        setStatus("LIVE");
+
+      });
+
+
+      video.addEventListener("waiting", function () {
+
+        setStatus("Buffering...");
+
+      });
+
+
+      video.addEventListener("pause", function () {
+
+        setStatus("Paused");
+
+      });
+
+
+      video.addEventListener("ended", function () {
+
+        setStatus("Stream ended");
+
+      });
+
+
+      // =====================================================
+      // MOBILE PLAYBACK
+      // =====================================================
+
+      // Do NOT force autoplay.
+      //
+      // iPhone/iPad browsers commonly require the user
+      // to interact with the player before playback.
+      //
+
+      console.log("Player ready.");
+
+    } catch (error) {
+
+      console.error("Initialization error:", error);
+
+      showError(
+        "Could not initialize the player.\n\n" +
+        (error.message || error)
+      );
+
+    }
   }
 
-  else {
 
-    alert('This browser does not support HLS.');
+  // =========================================================
+  // START
+  // =========================================================
 
-  }
+  document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-})();
+      shaka.polyfill.installAll();
+
+      initPlayer();
+
+    }
+  );
+
 </script>
 
 </body>
 </html>
+```
