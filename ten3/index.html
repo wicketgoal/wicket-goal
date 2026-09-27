@@ -1,59 +1,272 @@
-
 <!DOCTYPE html>
+
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Shaka Player UI (v4.16.3)</title>
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+```
+<!-- Load Shaka Player UI components -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/shaka-player.ui.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/controls.css">
 
-  <title>Live Player</title>
+<!-- Load Material Icons for Shaka UI -->
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
+<style>
     html,
     body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
-      overflow: hidden;
+        margin: 0;
+        padding: 0;
+        background: #000;
+        height: 100%;
+        overflow: hidden;
     }
 
-    .player-container {
-      position: fixed;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      background: #000;
+    #video-container {
+        width: 100vw;
+        height: 100vh;
+        position: relative;
+        background: #000;
     }
 
-    iframe {
-      display: block;
-      width: 100%;
-      height: 100%;
-      border: 0;
+    video {
+        width: 100%;
+        height: 100%;
+        background: #000;
+        object-fit: contain;
     }
-  </style>
+
+    /* CUSTOM CONTROLS STYLES */
+    .shaka-controls-container {
+        z-index: 10 !important;
+    }
+
+    .shaka-play-button {
+        z-index: 15 !important;
+    }
+
+    /* PREMIUM MENU STYLES */
+    .shaka-settings-menu {
+        background: rgba(30, 30, 30, 0.6) !important;
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+        padding: 8px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        max-width: 220px;
+        animation: fadeIn 0.25s ease;
+    }
+
+    .shaka-settings-menu button {
+        display: block;
+        width: 100%;
+        background: rgba(255, 255, 255, 0.04);
+        color: #fff;
+        border-radius: 8px;
+        padding: 6px 12px;
+        margin: 4px 0;
+        border: 2px solid rgba(255, 255, 255, 0.35);
+        font-size: 13px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .shaka-settings-menu button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+            135deg,
+            rgba(0, 198, 255, 0.12),
+            rgba(0, 114, 255, 0.12)
+        );
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: 8px;
+        z-index: 0;
+    }
+
+    .shaka-settings-menu button:hover::before,
+    .shaka-settings-menu button:focus::before {
+        opacity: 1;
+    }
+
+    .shaka-settings-menu button:hover,
+    .shaka-settings-menu button:focus {
+        border-color: #fff;
+        box-shadow: 0 0 10px rgba(0, 198, 255, 0.5);
+        color: #fff;
+    }
+
+    .shaka-settings-menu button[aria-checked="true"] {
+        background: linear-gradient(135deg, #00c6ff, #0072ff);
+        color: #fff;
+        border-color: #fff;
+        box-shadow: 0 0 12px rgba(0, 198, 255, 0.7);
+    }
+
+    .shaka-settings-menu button:focus {
+        outline: none !important;
+        box-shadow: none !important;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+</style>
+```
+
 </head>
 
 <body>
 
-  <div class="player-container">
-    <iframe
-      src="https://allrounder-live12.pages.dev/hotstar"
-      title="Live Video Player"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
-      referrerpolicy="strict-origin-when-cross-origin"
-      allowfullscreen>
-    </iframe>
-  </div>
+```
+<div id="video-container">
+
+    <!-- Shaka Player video -->
+    <video id="video" class="shaka-video" playsinline></video>
+
+    <!-- Shaka UI controls -->
+    <div class="shaka-controls-container" shaka-controls></div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+
+        // Install Shaka Player polyfills
+        shaka.polyfill.installAll();
+
+        // Parse URL parameters
+        const params = new URLSearchParams(window.location.search);
+
+        const manifestUri = params.get('manifest');
+        const keyHex = params.get('key');
+        const keyIdHex = params.get('keyid');
+        const thumpUri = params.get('thumb');
+
+        // Stop if no manifest is provided
+        if (!manifestUri) {
+            console.warn(
+                'No "manifest" URI found in URL. Player initialization aborted.'
+            );
+            return;
+        }
+
+        // Get video element
+        const video = document.getElementById('video');
+        const container = document.getElementById('video-container');
+
+        // Apply thumbnail from URL if provided
+        if (thumpUri) {
+            video.poster = thumpUri;
+            console.log('Video poster applied:', thumpUri);
+        }
+
+        // Initialize Shaka Player
+        const player = new shaka.Player(video);
+
+        // Initialize Shaka UI
+        const ui = new shaka.ui.Overlay(
+            player,
+            container,
+            video
+        );
+
+        // Error handling
+        player.addEventListener('error', (e) => {
+            console.error('Shaka Player Error:', e.detail);
+        });
+
+        // ClearKey DRM configuration
+        if (keyIdHex && keyHex) {
+            try {
+
+                const clearKeyMap = {};
+                clearKeyMap[keyIdHex] = keyHex;
+
+                player.configure({
+                    drm: {
+                        clearKeys: clearKeyMap,
+                        servers: {
+                            'org.w3.clearkey': manifestUri
+                        }
+                    }
+                });
+
+                console.log(
+                    'ClearKey configuration applied for manifest:',
+                    manifestUri
+                );
+
+            } catch (e) {
+
+                console.error(
+                    'ClearKey setup failed. Attempting to load unencrypted.',
+                    e
+                );
+            }
+        }
+
+        // Configure Shaka UI controls
+        ui.configure({
+            controlPanelElements: [
+                'play_pause',
+                'time_and_duration',
+                'spacer',
+                'mute',
+                'fit_mode',
+                'volume',
+                'captions',
+                'picture_in_picture',
+                'quality',
+                'playback_rate',
+                'cast',
+                'fullscreen'
+            ],
+
+            enableQualitySelection: true,
+
+            addBigPlayButton: true
+        });
+
+        // Load manifest
+        try {
+
+            await player.load(manifestUri);
+
+            console.log(
+                'Video loaded successfully:',
+                manifestUri
+            );
+
+        } catch (e) {
+
+            console.error(
+                'Error loading video manifest:',
+                e
+            );
+        }
+
+    });
+</script>
+```
 
 </body>
-</html>
 
+</html>
