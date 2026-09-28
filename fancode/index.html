@@ -1,59 +1,161 @@
-
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>DASH ClearKey Player</title>
 
-  <title>Live Player</title>
+  <!-- Shaka Player -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/shaka-player.compiled.js"></script>
 
   <style>
     * {
       box-sizing: border-box;
     }
 
-    html,
     body {
       margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
       background: #000;
-      overflow: hidden;
+      color: #fff;
+      font-family: Arial, sans-serif;
     }
 
     .player-container {
-      position: fixed;
-      inset: 0;
       width: 100%;
-      height: 100%;
+      max-width: 1000px;
+      margin: 30px auto;
       background: #000;
     }
 
-    iframe {
-      display: block;
+    video {
       width: 100%;
-      height: 100%;
-      border: 0;
+      height: auto;
+      display: block;
+      background: #000;
+    }
+
+    #status {
+      padding: 12px;
+      font-size: 14px;
+      background: #111;
+      color: #ccc;
     }
   </style>
 </head>
 
 <body>
 
-  <div class="player-container">
-    <iframe
-      src="https://allinonereborn2.online/fcw/player_world.html?stream=https%3A%2F%2Fallinonereborn2.online%2Ffctest%2Fplaylists%2Fmatch_4249779_ENG%2Fenglish.m3u8"
-      title="Live Video Player"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
-      referrerpolicy="strict-origin-when-cross-origin"
-      allowfullscreen>
-    </iframe>
-  </div>
+<div class="player-container">
+
+  <video
+    id="video"
+    controls
+    autoplay
+    playsinline
+    muted>
+  </video>
+
+  <div id="status">Loading stream...</div>
+
+</div>
+
+<script>
+  const STREAM_URL =
+    'https://otte.cache.aiv-cdn.net/iad-nitro/live/clients/dash/enc/b3b3fkmrbl/out/v1/1084d5c9a97a4c5b9f9554c88f486646/cenc.mpd';
+
+  /*
+    Format:
+
+    KEY ID : KEY
+
+    Your supplied values:
+    Key ID = 82dfca238e8c4b430a3269db71965db9
+    Key    = a00b28caf4ac628e77a553d440c0ddca
+  */
+
+  const KEY_ID =
+    '82dfca238e8c4b430a3269db71965db9';
+
+  const KEY =
+    'a00b28caf4ac628e77a553d440c0ddca';
+
+
+  async function initPlayer() {
+
+    const video = document.getElementById('video');
+    const status = document.getElementById('status');
+
+    if (!shaka.Player.isBrowserSupported()) {
+      status.textContent =
+        'This browser does not support Shaka Player.';
+      return;
+    }
+
+    const player = new shaka.Player(video);
+
+    /*
+      Configure CENC ClearKey DRM.
+
+      Shaka expects:
+
+      clearKeys: {
+        "keyId": "key"
+      }
+    */
+
+    player.configure({
+      drm: {
+        clearKeys: {
+          [KEY_ID]: KEY
+        }
+      }
+    });
+
+    /*
+      Error handler
+    */
+
+    player.addEventListener('error', function(event) {
+      console.error('Shaka Error:', event.detail);
+
+      status.textContent =
+        'Player error: ' +
+        (event.detail && event.detail.code
+          ? event.detail.code
+          : 'Unknown error');
+    });
+
+
+    try {
+
+      status.textContent = 'Loading stream...';
+
+      await player.load(STREAM_URL);
+
+      status.textContent = 'Stream loaded successfully.';
+
+      console.log('DASH stream loaded.');
+
+    } catch (error) {
+
+      console.error('Stream loading failed:', error);
+
+      status.textContent =
+        'Failed to load stream. Error code: ' +
+        (error.code || 'unknown');
+
+    }
+  }
+
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initPlayer();
+  });
+
+</script>
 
 </body>
 </html>
-
+```
