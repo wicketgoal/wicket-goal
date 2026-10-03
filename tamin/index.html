@@ -1,18 +1,15 @@
-```html
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-  >
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
-  <title>MPD Player</title>
-
-  <!-- Shaka Player -->
-  <script src="https://cdn.jsdelivr.net/npm/shaka-player@4.16.12/dist/shaka-player.compiled.js"></script>
+  <title>Live Player</title>
 
   <style>
     * {
@@ -24,281 +21,40 @@
       margin: 0;
       padding: 0;
       width: 100%;
-      min-height: 100%;
+      height: 100%;
       background: #000;
+      overflow: hidden;
     }
 
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-    }
-
-    .player-wrapper {
+    .player-container {
+      position: fixed;
+      inset: 0;
       width: 100%;
-      max-width: 1200px;
+      height: 100%;
       background: #000;
     }
 
-    video {
+    iframe {
       display: block;
       width: 100%;
-      height: auto;
-      min-height: 220px;
-      background: #000;
-    }
-
-    #status {
-      padding: 10px;
-      background: #111;
-      color: #aaa;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      text-align: center;
-    }
-
-    #error {
-      display: none;
-      padding: 12px;
-      background: #180000;
-      color: #ff6b6b;
-      font-family: Arial, sans-serif;
-      font-size: 13px;
-      white-space: pre-wrap;
+      height: 100%;
+      border: 0;
     }
   </style>
 </head>
 
 <body>
 
-<div class="player-wrapper">
-
-  <video
-    id="video"
-    controls
-    playsinline
-    webkit-playsinline
-    preload="metadata">
-  </video>
-
-  <div id="status">
-    Loading stream...
+  <div class="player-container">
+    <iframe
+      src="https://mini.allinonereborn.site/tnt2.html"
+      title="Live Video Player"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen>
+    </iframe>
   </div>
-
-  <div id="error"></div>
-
-</div>
-
-<script>
-
-  // =========================================================
-  // STREAM CONFIGURATION
-  // =========================================================
-
-  const STREAM = {
-    url: "https://a96aivottlinear-a.akamaihd.net/OTTB/pdx-nitro/live/clients/dash/enc/kokgbqrt6n/out/v1/7d6a6227d1d44ce993e20e600e2bebd4/cenc.mpd",
-
-    keyId: "e82afe190e1a2ecc0f3cc2f3e4de056f",
-
-    key: "fe561b16157b65130a9accb3f8b54e95"
-  };
-
-
-  // =========================================================
-  // ELEMENTS
-  // =========================================================
-
-  const video = document.getElementById("video");
-  const status = document.getElementById("status");
-  const errorBox = document.getElementById("error");
-
-
-  // =========================================================
-  // STATUS
-  // =========================================================
-
-  function setStatus(message) {
-    status.textContent = message;
-  }
-
-
-  // =========================================================
-  // ERROR DISPLAY
-  // =========================================================
-
-  function showError(message) {
-
-    console.error(message);
-
-    errorBox.style.display = "block";
-    errorBox.textContent = message;
-
-    setStatus("Playback failed");
-  }
-
-
-  // =========================================================
-  // SHAKA ERROR HANDLER
-  // =========================================================
-
-  function onError(event) {
-
-    const error = event.detail;
-
-    console.error("Shaka Error:", error);
-
-    showError(
-      "Playback error\n\n" +
-      "Code: " + error.code + "\n" +
-      "Category: " + error.category + "\n" +
-      "Message: " + (error.message || "Unknown error")
-    );
-  }
-
-
-  // =========================================================
-  // INITIALIZE PLAYER
-  // =========================================================
-
-  async function initPlayer() {
-
-    try {
-
-      // Check browser compatibility
-      if (!shaka.Player.isBrowserSupported()) {
-
-        showError(
-          "This browser does not support the required " +
-          "Media Source / Encrypted Media features."
-        );
-
-        return;
-      }
-
-
-      // Create Shaka player
-      const player = new shaka.Player(video);
-
-
-      // Listen for errors
-      player.addEventListener("error", onError);
-
-
-      // =====================================================
-      // CLEARKEY DRM
-      // =====================================================
-      //
-      // Shaka accepts the KID and KEY in hexadecimal.
-      //
-      // keyId = KID
-      // key   = decryption key
-      //
-      // =====================================================
-
-      player.configure({
-
-        drm: {
-
-          clearKeys: {
-
-            [STREAM.keyId]: STREAM.key
-
-          }
-
-        }
-
-      });
-
-
-      setStatus("Loading encrypted DASH stream...");
-
-
-      // =====================================================
-      // LOAD MPD
-      // =====================================================
-
-      await player.load(STREAM.url);
-
-
-      console.log("MPD loaded successfully");
-
-      setStatus("Stream loaded");
-
-
-      // =====================================================
-      // PLAYER EVENTS
-      // =====================================================
-
-      video.addEventListener("playing", function () {
-
-        setStatus("LIVE");
-
-      });
-
-
-      video.addEventListener("waiting", function () {
-
-        setStatus("Buffering...");
-
-      });
-
-
-      video.addEventListener("pause", function () {
-
-        setStatus("Paused");
-
-      });
-
-
-      video.addEventListener("ended", function () {
-
-        setStatus("Stream ended");
-
-      });
-
-
-      // =====================================================
-      // MOBILE PLAYBACK
-      // =====================================================
-
-      // Do NOT force autoplay.
-      //
-      // iPhone/iPad browsers commonly require the user
-      // to interact with the player before playback.
-      //
-
-      console.log("Player ready.");
-
-    } catch (error) {
-
-      console.error("Initialization error:", error);
-
-      showError(
-        "Could not initialize the player.\n\n" +
-        (error.message || error)
-      );
-
-    }
-  }
-
-
-  // =========================================================
-  // START
-  // =========================================================
-
-  document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-      shaka.polyfill.installAll();
-
-      initPlayer();
-
-    }
-  );
-
-</script>
 
 </body>
 </html>
-```
