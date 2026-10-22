@@ -1,95 +1,59 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>English | Canada v Nepal (2nd Innings) (NEPALI) — Live</title>
-<!-- Shaka Player UI -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/shaka-player.ui.js"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/shaka-player/4.16.3/controls.css">
-<style>
-  html, body {
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #000;
-  }
-  #video-container {
-    position: relative;
-    width: 100vw;
-    height: 100vh;
-    background: #000;
-  }
-  video {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    background: #000;
-  }
-  .shaka-controls-container { z-index: 10 !important; }
-  .shaka-play-button { z-index: 15 !important; }
-</style>
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <title>Live Player</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .player-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+  </style>
 </head>
+
 <body>
-<div id="video-container">
-    <video id="video"
-           poster="https://suniliv.pages.dev/ptest1?id=sony-ten-5"
-           class="shaka-video"
-           playsinline></video>
-    <div class="shaka-controls-container" shaka-controls></div>
-</div>
-<script>
-const MATCH = {"tvg_id":"01221061-c277-4da3-b0bc-89f30e5a1f25","title":"English | Canada v Nepal (2nd Innings) (NEPALI)","url":"https://live-d-01-icc-we.akamaized.net/variant/v1blackout/vcg-01-d/DASH_DASH/Live/channel(vcg-01-ch-hd-06)/hdntl=exp=1791739811~acl=%2fvariant%2fv1blackout%2fvcg-01-d%2f*~id=2ac03f6e-df86-481e-a05f-ec1015c944ac~data=hdntl~hmac=dd1a9c84d3f4709f39cb6dfd3f51dba0d73446912c2cf31f60acdbd0c1a03792/manifest.mpd?vcfilter=01221061-c277-4da3-b0bc-89f30e5a1f25&","license_key":"{\\"keys\\":[{\\"kty\\":\\"oct\\",\\"k\\":\\"mGn4BLoY1-UIy_94GCkiHA\\",\\"kid\\":\\"Ob0wLN7tNxCon7AE0jKrZw\\"}],\\"type\\":\\"temporary\\"}","keyid":"Ob0wLN7tNxCon7AE0jKrZw","key":"mGn4BLoY1-UIy_94GCkiHA"};
-function proxiedUrl(original) {
-    return 'mccproxy.php?url=' + encodeURIComponent(original);
-}
-document.addEventListener('DOMContentLoaded', async () => {
-    shaka.polyfill.installAll();
-    if (!shaka.Player.isBrowserSupported()) {
-        console.error('Browser not supported by Shaka Player.');
-        return;
-    }
-    const video     = document.getElementById('video');
-    const container = document.getElementById('video-container');
-    const player = new shaka.Player(video);
-    const ui     = new shaka.ui.Overlay(player, container, video);
-    player.addEventListener('error', e => {
-        console.error('Shaka Player Error:', e.detail);
-    });
-    if (MATCH.keyid && MATCH.key) {
-        const clearKeyMap = {};
-        clearKeyMap[MATCH.keyid.trim()] = MATCH.key.trim();
-        player.configure({
-            drm: {
-                clearKeys: clearKeyMap,
-                servers: {
-                    'org.w3.clearkey': MATCH.url
-                }
-            }
-        });
-    }
-    ui.configure({
-        controlPanelElements: [
-            'play_pause', 'time_and_duration',
-            'spacer', 'mute', 'volume', 'captions',
-            'quality', 'playback_rate', 'picture_in_picture',
-            'fullscreen'
-        ],
-        addBigPlayButton: true,
-        enableTooltips: true,
-        overflowMenuButtons: ['captions', 'quality', 'playback_rate', 'picture_in_picture']
-    });
-    const loadUrl = proxiedUrl(MATCH.url);
-    try {
-        await player.load(loadUrl);
-        video.play().catch(err => console.warn('Autoplay blocked:', err));
-    } catch (err) {
-        console.error('Load failed:', err);
-    }
-});
-</script>
+
+  <div class="player-container">
+    <iframe
+      src="https://suniliv.pages.dev/ptest1?id=sony-ten-5-hd"
+      title="Live Video Player"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen>
+    </iframe>
+  </div>
+
 </body>
 </html>
+
