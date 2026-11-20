@@ -1,0 +1,58 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+  <title>Live Player</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      overflow: hidden;
+    }
+
+    .player-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+    }
+
+    iframe {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="player-container">
+    <iframe
+      src="https://stream-through-spark.lovable.app/api/proxy?u=https%3A%2F%2Ftoffee.aliflaila.live%2Fproxy%2Fm3u8%3Furl%3Dhttps%253A%252F%252Fprod-linear-media.toffeelive.com%252Fcdn%252Flive%252Fsony_sports_2_hd%252F160%252F160.m3u8%253Fhdntl%253DExpires%253D1795246807~_GO%253DGenerated~URLPrefix%253DaHR0cHM6Ly9wcm9kLWxpbmVhci1tZWRpYS50b2ZmZWVsaXZlLmNvbQ~Data%253DeyJzdWJzY3JpYmVyX2lkIjoiN2Q2ZmUxMWItNzA1YS00YWQ1LWEwZjctMzkzNDg1MTRlOWQ3In0~Signature%253DAZh99ZP26abA6d1tTuYIc7fscnvCpDWgES90r4_fKZFkvxiOaVwX-9NcGUnwuTS4VF1S8IEuT0GYklj0EUzqAaxw_DAE%26cid%3D100186256%26src%3D0%26variant%3D2"
+      title="Live Video Player"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+      sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+      referrerpolicy="strict-origin-when-cross-origin"
+      allowfullscreen>
+    </iframe>
+  </div>
+
+</body>
+</html>
